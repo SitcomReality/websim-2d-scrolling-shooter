@@ -25,6 +25,10 @@ export class CollisionSystem {
                         this.scoreGained += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
                         
+                        // Show XP text
+                        const xpAmount = enemy.points; // XP equals enemy points
+                        this.damageTextSystem.addXP(enemy.x, enemy.y + 20, xpAmount);
+                        
                         // Use player's adjusted chance for health pickup
                         const dropChance = player.healthPickupChance || 0.02;
                         if (Math.random() < dropChance) {
