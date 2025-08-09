@@ -6,24 +6,25 @@ export class EnemySpawner {
         this.enemies = [];
         this.spawnRate = 2000; // milliseconds
         this.lastSpawnTime = 0;
-        this.wave = 1;
         
-        // Progressive enemy unlock system
+        // Fixed progressive enemy unlock system
         this.enemyTypes = ['basic', 'fast', 'zigzag', 'tank'];
         this.unlockedTypes = ['basic']; // Start with only basic
-        this.currentUnlockLevel = 1; // Track current unlock level
     }
     
     update(deltaTime, playerLevel) {
-        // Unlock new enemy types based on player level
-        this.unlockEnemyTypes(playerLevel);
+        // Ensure we have a valid player level
+        const level = Math.max(1, playerLevel || 1);
         
-        // Increase spawn rate based on level
-        this.updateSpawnRate(playerLevel);
+        // Unlock new enemy types based on player level
+        this.unlockEnemyTypes(level);
+        
+        // Update spawn rate based on level
+        this.updateSpawnRate(level);
         
         // Spawn new enemies
         if (Date.now() - this.lastSpawnTime > this.spawnRate) {
-            this.spawnEnemy(playerLevel);
+            this.spawnEnemy(level);
             this.lastSpawnTime = Date.now();
         }
         
@@ -33,17 +34,19 @@ export class EnemySpawner {
     }
     
     unlockEnemyTypes(playerLevel) {
-        // Calculate how many types should be unlocked
-        const typesToUnlock = Math.min(playerLevel, this.enemyTypes.length);
+        const unlockOrder = ['basic', 'fast', 'zigzag', 'tank'];
         
-        // Update unlocked types based on player level
-        this.unlockedTypes = this.enemyTypes.slice(0, typesToUnlock);
+        // Calculate how many types should be unlocked
+        const typesToUnlock = Math.min(playerLevel, unlockOrder.length);
+        
+        // Update unlocked types to include only up to the current level
+        this.unlockedTypes = unlockOrder.slice(0, typesToUnlock);
     }
     
     updateSpawnRate(playerLevel) {
         // Linear decrease in spawn rate as level increases
-        // Base: 2000ms, decreases by 100ms per level, minimum 500ms
-        this.spawnRate = Math.max(500, 2000 - (playerLevel - 1) * 100);
+        // Base: 2000ms, decreases by 100ms per level, minimum 300ms
+        this.spawnRate = Math.max(300, 2000 - (playerLevel - 1) * 100);
     }
     
     spawnEnemy(playerLevel) {
@@ -55,6 +58,10 @@ export class EnemySpawner {
     
     getRandomEnemyType() {
         // Only select from unlocked types
+        if (this.unlockedTypes.length === 0) {
+            return 'basic'; // Fallback
+        }
+        
         const randomIndex = Math.floor(Math.random() * this.unlockedTypes.length);
         return this.unlockedTypes[randomIndex];
     }
@@ -69,9 +76,7 @@ export class EnemySpawner {
     
     reset() {
         this.enemies = [];
-        this.wave = 1;
         this.spawnRate = 2000;
-        this.unlockedTypes = ['basic']; // Reset to only basic
-        this.currentUnlockLevel = 1;
+        this.unlockedTypes = ['basic'];
     }
 }
