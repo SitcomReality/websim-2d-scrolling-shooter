@@ -89,7 +89,10 @@ export class Game {
     
     updateGameLogic(deltaTime) {
         this.player.update(deltaTime, this.inputHandler.getInputState());
-        this.enemySpawner.update(deltaTime);
+        
+        // Pass player level to enemy spawner for unlock system
+        this.enemySpawner.update(deltaTime, this.gameState.level);
+        
         this.particleSystem.update(deltaTime);
         this.collisionSystem.getDamageTextSystem().update(deltaTime);
         this.powerUpSystem.update(deltaTime);
