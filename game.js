@@ -15,6 +15,10 @@ class Game {
         this.isRunning = false;
         this.score = 0;
         this.health = 100;
+        this.xp = 0;
+        this.level = 1;
+        this.xpToNextLevel = 100;
+        this.isPausedForLevelUp = false;
         
         this.setupUI();
         this.initializeSystems();
@@ -26,8 +30,15 @@ class Game {
         this.startBtn = document.getElementById('start-btn');
         this.restartBtn = document.getElementById('restart-btn');
         
+        this.xpFill = document.getElementById('xp-fill');
+        this.levelDisplay = document.getElementById('level-display');
+        this.levelUpOverlay = document.getElementById('level-up-overlay');
+        this.continueBtn = document.getElementById('continue-btn');
+        
         this.startBtn.addEventListener('click', () => this.startGame());
         this.restartBtn.addEventListener('click', () => this.restartGame());
+        
+        this.continueBtn.addEventListener('click', () => this.continueAfterLevelUp());
     }
     
     initializeSystems() {
@@ -46,6 +57,10 @@ class Game {
         this.startBtn.style.display = 'none';
         this.score = 0;
         this.health = 100;
+        this.xp = 0;
+        this.level = 1;
+        this.xpToNextLevel = 100;
+        this.isPausedForLevelUp = false;
         this.gameLoop();
     }
     
@@ -53,11 +68,16 @@ class Game {
         this.restartBtn.style.display = 'none';
         this.enemySpawner.reset();
         this.player.reset();
+        this.xp = 0;
+        this.level = 1;
+        this.xpToNextLevel = 100;
+        this.isPausedForLevelUp = false;
         this.startGame();
     }
     
     gameLoop() {
         if (!this.isRunning) return;
+        if (this.isPausedForLevelUp) return;
         
         this.update();
         this.render();
@@ -66,6 +86,8 @@ class Game {
     }
     
     update() {
+        if (this.isPausedForLevelUp) return;
+        
         const deltaTime = 16.67; // 60 FPS
         
         this.player.update(deltaTime, this.inputHandler.getInputState());
@@ -86,10 +108,45 @@ class Game {
         this.score += this.collisionSystem.getScoreGained();
         this.health = Math.max(0, this.health - this.collisionSystem.getDamageTaken());
         
+        // XP gain from destroying enemies
+        this.xp += this.collisionSystem.getScoreGained();
+        this.checkLevelUp();
+        
         this.updateUI();
         
         if (this.health <= 0) {
             this.gameOver();
+        }
+    }
+    
+    checkLevelUp() {
+        if (this.xp >= this.xpToNextLevel) {
+            this.levelUp();
+        }
+    }
+    
+    levelUp() {
+        this.level++;
+        this.xp = 0;
+        this.xpToNextLevel = Math.floor(this.xpToNextLevel * 1.5);
+        this.isPausedForLevelUp = true;
+        
+        // Show level up overlay
+        document.getElementById('level-up-level').textContent = this.level;
+        this.levelUpOverlay.style.display = 'flex';
+    }
+    
+    continueAfterLevelUp() {
+        this.levelUpOverlay.style.display = 'none';
+        this.isPausedForLevelUp = false;
+        
+        // Reset XP for next level
+        this.xp = 0;
+        this.updateUI();
+        
+        // Resume game loop
+        if (this.isRunning) {
+            this.gameLoop();
         }
     }
     
@@ -118,6 +175,10 @@ class Game {
     updateUI() {
         this.scoreDisplay.textContent = `Score: ${this.score}`;
         this.healthFill.style.width = `${this.health}%`;
+        
+        const xpPercentage = (this.xp / this.xpToNextLevel) * 100;
+        this.xpFill.style.width = `${xpPercentage}%`;
+        this.levelDisplay.textContent = `Level ${this.level}`;
     }
     
     gameOver() {

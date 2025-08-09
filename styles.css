@@ -56,11 +56,61 @@ body {
     overflow: hidden;
 }
 
-#health-fill {
+#xp-bar {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    width: 200px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #ffff00;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#xp-fill {
     height: 100%;
-    width: 100%;
-    background: linear-gradient(to right, #ff0000, #ffff00, #00ff00);
+    width: 0%;
+    background: linear-gradient(to right, #ffff00, #ff00ff);
     transition: width 0.3s ease;
+}
+
+#level-display {
+    position: absolute;
+    top: 115px;
+    left: 20px;
+    color: #ffff00;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #ffff00;
+}
+
+#level-up-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    pointer-events: all;
+}
+
+#level-up-message {
+    color: #ffff00;
+    font-size: 48px;
+    font-weight: bold;
+    text-shadow: 0 0 20px #ffff00;
+    margin-bottom: 30px;
+}
+
+#continue-btn {
+    position: static;
+    transform: none;
+    margin-top: 20px;
 }
 
 button {
@@ -88,4 +138,3 @@ button:hover {
 #restart-btn {
     display: none;
 }
-
