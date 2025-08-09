@@ -8,16 +8,23 @@
 </head>
 <body>
     <div id="game-container">
-        <canvas id="game-canvas" width="800" height="600"></canvas>
-        <div id="ui-overlay">
-            <div id="score-display">Score: 0</div>
-            <div id="health-bar">
-                <div id="health-fill"></div>
-            </div>
+        <div id="xp-container">
             <div id="xp-bar">
                 <div id="xp-fill"></div>
             </div>
             <div id="level-display">Level 1</div>
+        </div>
+        
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        
+        <div id="health-container">
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+            <div id="score-display">Score: 0</div>
+        </div>
+        
+        <div id="ui-overlay">
             <button id="start-btn">Start Game</button>
             <button id="restart-btn" style="display: none;">Restart</button>
         </div>
@@ -50,3 +57,4 @@
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
+

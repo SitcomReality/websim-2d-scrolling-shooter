@@ -119,3 +119,4 @@ export class UIManager extends EventEmitter {
         this.upgradeSelectionOverlay.style.display = 'none';
     }
 }
+
