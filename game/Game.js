@@ -123,8 +123,13 @@ export class Game {
             this.gameState.level++;
             this.gameState.xp = 0;
             this.gameState.xpToNextLevel = Math.floor(this.gameState.xpToNextLevel * 1.5);
-            this.gameState.isPausedForLevelUp = true;
-            this.uiManager.showLevelUp(this.gameState.level);
+            
+            // Go directly to upgrade selection
+            const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
+                this.gameState.level,
+                this.upgradeSystem.playerUpgrades
+            );
+            this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
         }
         
         // Check for damage
