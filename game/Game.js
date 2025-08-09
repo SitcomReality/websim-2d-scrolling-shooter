@@ -35,6 +35,9 @@ export class Game {
         this.uiManager.on('restart', () => this.restartGame());
         this.uiManager.on('continue', () => this.continueAfterLevelUp());
         this.uiManager.on('upgradeSelected', (index) => this.handleUpgradeSelection(index));
+        
+        // Update side panels
+        this.updateSidePanels();
     }
     
     startGame() {
@@ -42,6 +45,7 @@ export class Game {
         this.gameState.isRunning = true;
         this.uiManager.hideStartButton();
         this.resetGame();
+        this.updateSidePanels();
         this.gameLoop();
     }
     
@@ -50,6 +54,7 @@ export class Game {
         this.gameState.isRunning = true;
         this.uiManager.hideRestartButton();
         this.resetGame();
+        this.updateSidePanels();
         this.gameLoop();
     }
     
@@ -58,6 +63,7 @@ export class Game {
         this.enemySpawner.reset();
         this.particleSystem.particles = [];
         this.powerUpSystem.powerUps = [];
+        this.upgradeSystem.playerUpgrades.clear();
     }
     
     continueAfterLevelUp() {
@@ -70,7 +76,9 @@ export class Game {
             this.upgradeSystem.playerUpgrades
         );
         
+        this.gameState.isPausedForLevelUp = true;
         this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
+        this.updateSidePanels();
     }
     
     handleUpgradeSelection(index) {
@@ -79,6 +87,62 @@ export class Game {
             this.upgradeSystem.applyUpgrade(choices[index], this.player);
             this.uiManager.hideUpgradeSelection();
             this.gameState.isPausedForLevelUp = false;
+            this.updateSidePanels();
+        }
+    }
+    
+    updateSidePanels() {
+        // Update upgrades panel
+        const upgradesList = document.getElementById('unlocked-upgrades-list');
+        if (upgradesList) {
+            upgradesList.innerHTML = '';
+            for (const [upgradeName, data] of this.upgradeSystem.playerUpgrades) {
+                const item = document.createElement('div');
+                item.className = 'upgrade-item';
+                item.innerHTML = `
+                    <div>${upgradeName}</div>
+                    <div class="upgrade-count">Level ${data.count}</div>
+                `;
+                upgradesList.appendChild(item);
+            }
+        }
+
+        // Update enemies panel
+        const enemiesList = document.getElementById('unlocked-enemies-list');
+        if (enemiesList) {
+            enemiesList.innerHTML = '';
+            this.enemySpawner.unlockedTypes.forEach(type => {
+                const item = document.createElement('div');
+                item.className = 'enemy-item';
+                
+                let description = '';
+                let color = '#ff9900';
+                
+                switch(type) {
+                    case 'basic':
+                        description = 'Standard enemy';
+                        color = '#ff9900';
+                        break;
+                    case 'fast':
+                        description = 'Quick and agile';
+                        color = '#ff6666';
+                        break;
+                    case 'zigzag':
+                        description = 'Moves erratically';
+                        color = '#ff00ff';
+                        break;
+                    case 'tank':
+                        description = 'Slow but tough';
+                        color = '#ff0000';
+                        break;
+                }
+                
+                item.innerHTML = `
+                    <div class="enemy-name" style="color: ${color}">${type.toUpperCase()}</div>
+                    <div class="enemy-description">${description}</div>
+                `;
+                enemiesList.appendChild(item);
+            });
         }
     }
     
@@ -134,6 +198,7 @@ export class Game {
             );
             this.gameState.isPausedForLevelUp = true;
             this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
+            this.updateSidePanels();
         }
         
         // Check for damage
