@@ -100,8 +100,6 @@ export class UpgradeSystem {
             <div class="upgrade-rarity">${choice.rarity}</div>
         `;
         
-        card.addEventListener('click', () => this.selectUpgrade(index));
-        
         return card;
     }
 }
