@@ -62,6 +62,48 @@ export class UpgradeSystem {
         }
         this.playerUpgrades.get(upgrade.name).count++;
     }
+    
+    createUpgradeCard(choice, index) {
+        const card = document.createElement('div');
+        card.className = `upgrade-card ${choice.rarity}`;
+        
+        const upgrade = choice.upgrade;
+        const values = choice.values;
+        
+        let description = '';
+        let valueText = '';
+        
+        if (upgrade.name === 'Max Health') {
+            description = 'Increases your maximum health';
+            valueText = `+${values.health} HP`;
+        } else if (upgrade.name === 'Damage Boost') {
+            description = 'Increases your bullet damage';
+            valueText = `+${values.damage} Damage`;
+        } else if (upgrade.name === 'Movement Speed') {
+            description = 'Increases your movement speed';
+            valueText = `+${values.speed} Speed`;
+        } else if (upgrade.name === 'Fire Rate') {
+            description = 'Increases your firing speed';
+            valueText = `${Math.round((1 - values.fireRateMultiplier) * 100)}% Faster`;
+        } else if (upgrade.name === 'Health Pickup Chance') {
+            description = 'Increases chance of health pickups from enemies';
+            valueText = `+${Math.round(values.chanceIncrease * 100)}% Chance`;
+        } else if (upgrade.name === 'Health Pickup Value') {
+            description = 'Increases health restored by pickups';
+            valueText = `+${values.amountIncrease} Health`;
+        }
+        
+        card.innerHTML = `
+            <div class="upgrade-name">${upgrade.name}</div>
+            <div class="upgrade-description">${description}</div>
+            <div class="upgrade-value">${valueText}</div>
+            <div class="upgrade-rarity">${choice.rarity}</div>
+        `;
+        
+        card.addEventListener('click', () => this.selectUpgrade(index));
+        
+        return card;
+    }
 }
 
 class BaseUpgrade {
