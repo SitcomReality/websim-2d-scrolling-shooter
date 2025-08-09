@@ -67,6 +67,11 @@ class Game {
         this.isPausedForLevelUp = false;
         this.levelUpDelayTimer = 0;
         this.isLevelUpPending = false;
+        
+        // Initialize player health
+        this.player.health = 100;
+        this.player.maxHealth = 100;
+        
         this.gameLoop();
     }
     
