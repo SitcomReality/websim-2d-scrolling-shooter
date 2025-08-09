@@ -179,6 +179,7 @@ export class Game {
     selectUpgrade(index) {
         const choice = this.uiManager.upgradeChoices[index];
         this.upgradeSystem.applyUpgrade(choice, this.player);
+        this.uiManager.hideUpgradeSelection();
         this.continueAfterLevelUp();
     }
     

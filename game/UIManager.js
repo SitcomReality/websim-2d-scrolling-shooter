@@ -114,4 +114,8 @@ export class UIManager extends EventEmitter {
         this.levelUpLevel.textContent = level;
         this.levelUpOverlay.style.display = 'flex';
     }
+    
+    hideUpgradeSelection() {
+        this.upgradeSelectionOverlay.style.display = 'none';
+    }
 }
