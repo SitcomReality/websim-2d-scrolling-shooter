@@ -114,6 +114,9 @@ export class Game {
             this.powerUpSystem
         );
         
+        const previousHealth = this.gameState.health;
+        const previousXP = this.gameState.xp;
+        
         // Update score and XP
         this.gameState.score += this.collisionSystem.getScoreGained();
         this.gameState.xp += this.collisionSystem.getScoreGained();
@@ -135,6 +138,16 @@ export class Game {
         
         // Check for damage
         this.gameState.health -= this.collisionSystem.getDamageTaken();
+        
+        // Trigger animations for changes
+        if (this.gameState.health !== previousHealth) {
+            this.uiManager.animateHealthBar();
+        }
+        
+        if (this.gameState.xp !== previousXP) {
+            this.uiManager.animateXPBar();
+        }
+        
         if (this.gameState.health <= 0) {
             this.gameState.isRunning = false;
             this.uiManager.showGameOver();
