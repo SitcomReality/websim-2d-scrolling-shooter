@@ -1,6 +1,14 @@
 import { Game } from './Game.js';
 
-// Initialize game when DOM is loaded
+import { Game } from './Game.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-    new Game();
+    const game = new Game();
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing game...');
+    const game = new Game();
+    console.log('Game initialized:', game);
+});
+
