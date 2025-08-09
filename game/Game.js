@@ -44,6 +44,7 @@ export class Game {
     
     startGame() {
         this.gameState.reset();
+        this.gameState.isRunning = true;
         this.gameLoop();
     }
     
@@ -131,7 +132,7 @@ export class Game {
         this.player.render(this.ctx);
         this.enemySpawner.render(this.ctx);
         this.particleSystem.render(this.ctx);
-        this.powerUpSystem.render(this.ctx);
+        this.upgradeSystem.render(this.ctx);
         this.collisionSystem.getDamageTextSystem().render(this.ctx);
     }
     
