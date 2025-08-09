@@ -96,6 +96,7 @@ class Game {
         this.enemySpawner.update(deltaTime);
         this.particleSystem.update(deltaTime);
         this.powerUpSystem.update(deltaTime);
+        this.collisionSystem.getDamageTextSystem().update(deltaTime);
         
         const enemies = this.enemySpawner.getEnemies();
         const playerBullets = this.player.getBullets();
@@ -227,6 +228,7 @@ class Game {
         this.enemySpawner.render(this.ctx);
         this.particleSystem.render(this.ctx);
         this.powerUpSystem.render(this.ctx);
+        this.collisionSystem.getDamageTextSystem().render(this.ctx);
     }
     
     renderStarfield() {

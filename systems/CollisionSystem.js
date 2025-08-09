@@ -1,7 +1,10 @@
+import { DamageTextSystem } from './DamageTextSystem.js';
+
 export class CollisionSystem {
     constructor() {
         this.scoreGained = 0;
         this.damageTaken = 0;
+        this.damageTextSystem = new DamageTextSystem();
     }
     
     checkCollisions(player, enemies, playerBullets, particleSystem) {
@@ -15,11 +18,13 @@ export class CollisionSystem {
                 const enemy = enemies[j];
                 if (bullet.intersects(enemy)) {
                     bullet.alive = false;
-                    if (enemy.takeDamage(1)) {
+                    const damage = bullet.damage || 1;
+                    if (enemy.takeDamage(damage)) {
                         enemy.alive = false;
                         this.scoreGained += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
                     }
+                    this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, 'physical');
                     break;
                 }
             }
@@ -28,9 +33,11 @@ export class CollisionSystem {
         // Player vs enemies
         for (let enemy of enemies) {
             if (player.intersects(enemy)) {
-                this.damageTaken += 20;
+                const damage = 20;
+                this.damageTaken += damage;
                 enemy.alive = false;
                 particleSystem.createExplosion(enemy.x, enemy.y);
+                this.damageTextSystem.addDamage(player.x, player.y, damage, 'physical');
             }
         }
         
@@ -39,8 +46,10 @@ export class CollisionSystem {
             enemy.getBullets().forEach(bullet => {
                 if (bullet.intersects(player)) {
                     bullet.alive = false;
-                    this.damageTaken += 10;
+                    const damage = 10;
+                    this.damageTaken += damage;
                     particleSystem.createExplosion(bullet.x, bullet.y);
+                    this.damageTextSystem.addDamage(player.x, player.y, damage, 'physical');
                 }
             });
         });
@@ -52,6 +61,10 @@ export class CollisionSystem {
     
     getDamageTaken() {
         return this.damageTaken;
+    }
+    
+    getDamageTextSystem() {
+        return this.damageTextSystem;
     }
 }
 
