@@ -36,9 +36,22 @@ export class UIManager extends EventEmitter {
         const healthPercent = Math.max(0, this.gameState.health);
         this.elements.healthFill.style.width = `${healthPercent}%`;
         
+        // Update health value text
+        const healthValue = document.getElementById('health-value');
+        if (healthValue) {
+            const maxHealth = this.gameState.maxHealth || 100;
+            healthValue.textContent = `${Math.round(this.gameState.health)} / ${maxHealth}`;
+        }
+        
         // Update XP bar
         const xpPercent = (this.gameState.xp / this.gameState.xpToNextLevel) * 100;
         this.elements.xpFill.style.width = `${xpPercent}%`;
+        
+        // Update XP value text
+        const xpValue = document.getElementById('xp-value');
+        if (xpValue) {
+            xpValue.textContent = `${Math.round(this.gameState.xp)} / ${this.gameState.xpToNextLevel}`;
+        }
         
         // Update displays
         this.elements.scoreDisplay.textContent = `Score: ${this.gameState.score}`;
