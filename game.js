@@ -5,6 +5,7 @@ import { InputHandler } from './systems/InputHandler.js';
 import { CollisionSystem } from './systems/CollisionSystem.js';
 import { ParticleSystem } from './systems/ParticleSystem.js';
 import { PowerUpSystem } from './systems/PowerUpSystem.js';
+import { UpgradeSystem } from './systems/UpgradeSystem.js';
 
 class Game {
     constructor() {
@@ -48,6 +49,7 @@ class Game {
         this.collisionSystem = new CollisionSystem();
         this.particleSystem = new ParticleSystem();
         this.powerUpSystem = new PowerUpSystem();
+        this.upgradeSystem = new UpgradeSystem();
         
         this.gameEngine.addEntity(this.player);
     }
@@ -131,9 +133,74 @@ class Game {
         this.xpToNextLevel = Math.floor(this.xpToNextLevel * 1.5);
         this.isPausedForLevelUp = true;
         
-        // Show level up overlay
-        document.getElementById('level-up-level').textContent = this.level;
-        this.levelUpOverlay.style.display = 'flex';
+        // Generate upgrade choices
+        this.upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
+            this.level,
+            this.upgradeSystem.playerUpgrades
+        );
+        
+        this.showUpgradeSelection();
+    }
+
+    showUpgradeSelection() {
+        this.levelUpOverlay.style.display = 'none';
+        
+        const overlay = document.getElementById('upgrade-selection-overlay');
+        const choicesContainer = document.getElementById('upgrade-choices');
+        choicesContainer.innerHTML = '';
+        
+        this.upgradeChoices.forEach((choice, index) => {
+            const card = this.createUpgradeCard(choice, index);
+            choicesContainer.appendChild(card);
+        });
+        
+        overlay.style.display = 'flex';
+    }
+
+    createUpgradeCard(choice, index) {
+        const card = document.createElement('div');
+        card.className = `upgrade-card ${choice.rarity}`;
+        
+        const upgrade = choice.upgrade;
+        const values = choice.values;
+        
+        let description = '';
+        let valueText = '';
+        
+        if (upgrade.name === 'Max Health') {
+            description = 'Increases your maximum health';
+            valueText = `+${values.health} HP`;
+        } else if (upgrade.name === 'Damage Boost') {
+            description = 'Increases your bullet damage';
+            valueText = `+${values.damage} Damage`;
+        } else if (upgrade.name === 'Movement Speed') {
+            description = 'Increases your movement speed';
+            valueText = `+${values.speed} Speed`;
+        } else if (upgrade.name === 'Fire Rate') {
+            description = 'Increases your firing speed';
+            valueText = `${Math.round((1 - values.fireRateMultiplier) * 100)}% Faster`;
+        }
+        
+        card.innerHTML = `
+            <div class="upgrade-name">${upgrade.name}</div>
+            <div class="upgrade-description">${description}</div>
+            <div class="upgrade-value">${valueText}</div>
+            <div class="upgrade-rarity">${choice.rarity}</div>
+        `;
+        
+        card.addEventListener('click', () => this.selectUpgrade(index));
+        
+        return card;
+    }
+
+    selectUpgrade(index) {
+        const choice = this.upgradeChoices[index];
+        this.upgradeSystem.applyUpgrade(choice, this.player);
+        
+        const overlay = document.getElementById('upgrade-selection-overlay');
+        overlay.style.display = 'none';
+        
+        this.continueAfterLevelUp();
     }
     
     continueAfterLevelUp() {
@@ -174,7 +241,7 @@ class Game {
     
     updateUI() {
         this.scoreDisplay.textContent = `Score: ${this.score}`;
-        this.healthFill.style.width = `${this.health}%`;
+        this.healthFill.style.width = `${(this.player.health / (this.player.maxHealth || 100)) * 100}%`;
         
         const xpPercentage = (this.xp / this.xpToNextLevel) * 100;
         this.xpFill.style.width = `${xpPercentage}%`;

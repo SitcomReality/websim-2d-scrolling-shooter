@@ -1,11 +1,12 @@
 import { Entity } from './Entity.js';
 
 export class Bullet extends Entity {
-    constructor(x, y, vx, vy, color = '#00ffff') {
+    constructor(x, y, vx, vy, color = '#00ffff', damage = 1) {
         super(x, y, 4, 10);
         this.velocity.x = vx;
         this.velocity.y = vy;
         this.color = color;
+        this.damage = damage;
     }
     
     update(deltaTime) {
@@ -26,4 +27,3 @@ export class Bullet extends Entity {
         ctx.restore();
     }
 }
-

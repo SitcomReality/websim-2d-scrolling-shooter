@@ -9,6 +9,7 @@ export class Player extends Entity {
         this.fireRate = 150; // milliseconds
         this.lastFireTime = 0;
         this.color = '#00ffff';
+        this.damage = 1;
     }
     
     update(deltaTime, inputState) {
@@ -16,10 +17,10 @@ export class Player extends Entity {
         this.velocity.x = 0;
         this.velocity.y = 0;
         
-        if (inputState.left) this.velocity.x = -this.speed;
-        if (inputState.right) this.velocity.x = this.speed;
-        if (inputState.up) this.velocity.y = -this.speed;
-        if (inputState.down) this.velocity.y = this.speed;
+        if (inputState.left) this.velocity.x = -(this.speed || 5);
+        if (inputState.right) this.velocity.x = this.speed || 5;
+        if (inputState.up) this.velocity.y = -(this.speed || 5);
+        if (inputState.down) this.velocity.y = this.speed || 5;
         
         this.x += this.velocity.x;
         this.y += this.velocity.y;
@@ -29,7 +30,7 @@ export class Player extends Entity {
         this.y = Math.max(20, Math.min(580, this.y));
         
         // Shooting
-        if (inputState.shoot && Date.now() - this.lastFireTime > this.fireRate) {
+        if (inputState.shoot && Date.now() - this.lastFireTime > (this.fireRate || 150)) {
             this.shoot();
             this.lastFireTime = Date.now();
         }
@@ -40,7 +41,8 @@ export class Player extends Entity {
     }
     
     shoot() {
-        this.bullets.push(new Bullet(this.x, this.y - 20, 0, -10));
+        const damage = this.damage || 1;
+        this.bullets.push(new Bullet(this.x, this.y - 20, 0, -10, '#00ffff', damage));
     }
     
     render(ctx) {
@@ -75,4 +77,3 @@ export class Player extends Entity {
         this.alive = true;
     }
 }
-

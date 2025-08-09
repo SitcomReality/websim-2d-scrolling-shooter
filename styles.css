@@ -138,3 +138,105 @@ button:hover {
 #restart-btn {
     display: none;
 }
+
+#upgrade-selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    pointer-events: all;
+}
+
+#upgrade-selection-content {
+    text-align: center;
+}
+
+#upgrade-title {
+    color: #ffff00;
+    font-size: 36px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 15px #ffff00;
+}
+
+#upgrade-choices {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.upgrade-card {
+    background: linear-gradient(135deg, #001122, #002244);
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.upgrade-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+    border-color: #00ffff;
+}
+
+.upgrade-card.common {
+    border-color: #cccccc;
+    box-shadow: 0 0 15px rgba(204, 204, 204, 0.3);
+}
+
+.upgrade-card.uncommon {
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+.upgrade-card.rare {
+    border-color: #0080ff;
+    box-shadow: 0 0 15px rgba(0, 128, 255, 0.3);
+}
+
+.upgrade-card.legendary {
+    border-color: #ff00ff;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+}
+
+.upgrade-name {
+    color: #00ffff;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.upgrade-description {
+    color: #cccccc;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.upgrade-value {
+    color: #ffff00;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.upgrade-rarity {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.common .upgrade-rarity { color: #cccccc; }
+.uncommon .upgrade-rarity { color: #00ff00; }
+.rare .upgrade-rarity { color: #0080ff; }
+.legendary .upgrade-rarity { color: #ff00ff; }
