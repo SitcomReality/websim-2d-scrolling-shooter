@@ -45,6 +45,8 @@ export class Game {
     startGame() {
         this.gameState.reset();
         this.gameState.isRunning = true;
+        this.uiManager.hideStartButton();
+        this.uiManager.hideRestartButton();
         this.gameLoop();
     }
     
@@ -52,6 +54,8 @@ export class Game {
         this.gameState.reset();
         this.enemySpawner.reset();
         this.player.reset();
+        this.uiManager.hideStartButton();
+        this.uiManager.hideRestartButton();
         this.startGame();
     }
     

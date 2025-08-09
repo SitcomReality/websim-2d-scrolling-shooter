@@ -102,9 +102,16 @@ export class UIManager extends EventEmitter {
         this.restartBtn.style.display = 'block';
     }
     
+    hideStartButton() {
+        this.startBtn.style.display = 'none';
+    }
+    
+    hideRestartButton() {
+        this.restartBtn.style.display = 'none';
+    }
+    
     showLevelUp(level) {
         this.levelUpLevel.textContent = level;
         this.levelUpOverlay.style.display = 'flex';
     }
 }
-
