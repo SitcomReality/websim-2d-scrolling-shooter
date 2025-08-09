@@ -1,6 +1,6 @@
 import { GameEngine } from '../engine/GameEngine.js';
 import { Player } from '../entities/Player.js';
-import { EnemySpawner } from '../systems/EnemySpawner.js';
+import { EnemySpawner } from './systems/EnemySpawner.js';
 import { InputHandler } from '../systems/InputHandler.js';
 import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { ParticleSystem } from '../systems/ParticleSystem.js';

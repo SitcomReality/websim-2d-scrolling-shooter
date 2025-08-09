@@ -6,10 +6,22 @@ export class EnemySpawner {
         this.enemies = [];
         this.spawnRate = 2000; // milliseconds
         this.lastSpawnTime = 0;
-        this.wave = 1;
+        
+        // Fixed progressive enemy unlock system
+        this.enemyTypes = ['basic', 'fast', 'zigzag', 'tank'];
+        this.unlockedTypes = ['basic']; // Start with only basic
     }
     
-    update(deltaTime) {
+    update(deltaTime, playerLevel) {
+        // Ensure we have a valid player level
+        const level = Math.max(1, playerLevel || 1);
+        
+        // Unlock new enemy types based on player level
+        this.unlockEnemyTypes(level);
+        
+        // Update spawn rate based on level
+        this.updateSpawnRate(level);
+        
         // Spawn new enemies
         if (Date.now() - this.lastSpawnTime > this.spawnRate) {
             this.spawnEnemy();
@@ -22,6 +34,21 @@ export class EnemySpawner {
         
         // Increase difficulty over time
         this.spawnRate = Math.max(500, 2000 - this.wave * 100);
+    }
+    
+    updateSpawnRate(playerLevel) {
+        // Update spawn rate based on player level
+        this.spawnRate = Math.max(500, 2000 - playerLevel * 100);
+    }
+    
+    unlockEnemyTypes(playerLevel) {
+        const unlockOrder = ['basic', 'fast', 'zigzag', 'tank'];
+        
+        // Calculate how many types should be unlocked
+        const typesToUnlock = Math.min(playerLevel, unlockOrder.length);
+        
+        // Update unlocked types to include only up to the current level
+        this.unlockedTypes = unlockOrder.slice(0, typesToUnlock);
     }
     
     spawnEnemy() {
@@ -37,11 +64,13 @@ export class EnemySpawner {
     }
     
     getRandomEnemyType() {
-        const rand = Math.random();
-        if (rand < 0.6) return 'basic';
-        if (rand < 0.8) return 'fast';
-        if (rand < 0.95) return 'tank';
-        return 'zigzag';
+        // Only select from unlocked types
+        if (this.unlockedTypes.length === 0) {
+            return 'basic'; // Fallback
+        }
+        
+        const randomIndex = Math.floor(Math.random() * this.unlockedTypes.length);
+        return this.unlockedTypes[randomIndex];
     }
     
     render(ctx) {
@@ -54,7 +83,7 @@ export class EnemySpawner {
     
     reset() {
         this.enemies = [];
-        this.wave = 1;
         this.spawnRate = 2000;
+        this.unlockedTypes = ['basic'];
     }
 }
