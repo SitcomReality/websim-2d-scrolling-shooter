@@ -132,13 +132,16 @@ class HealthUpgrade extends BaseUpgrade {
     }
     
     apply(player, values) {
-        player.maxHealth = (player.maxHealth || 100) + values.health
-        player.health = Math.min(player.health, player.maxHealth)
+        player.maxHealth = (player.maxHealth || 100) + values.health;
+        player.health = Math.min(player.health, player.maxHealth);
         
-        // Update game state max health
+        // Update game state max health and health
         if (window.gameInstance && window.gameInstance.gameState) {
-            window.gameInstance.gameState.maxHealth = player.maxHealth
-            window.gameInstance.gameState.health = player.health
+            window.gameInstance.gameState.maxHealth = player.maxHealth;
+            window.gameInstance.gameState.health = player.health;
+            
+            // Update UI to reflect new max health
+            window.gameInstance.uiManager.update();
         }
     }
 }
