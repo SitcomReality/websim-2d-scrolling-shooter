@@ -6,6 +6,7 @@ export class EnemySpawner {
         this.enemies = [];
         this.spawnRate = 2000; // milliseconds
         this.lastSpawnTime = 0;
+        this.wave = 1; // Initialize wave counter
         
         // Fixed progressive enemy unlock system
         this.enemyTypes = ['basic', 'fast', 'zigzag', 'tank'];
@@ -85,5 +86,6 @@ export class EnemySpawner {
         this.enemies = [];
         this.spawnRate = 2000;
         this.unlockedTypes = ['basic'];
+        this.wave = 1;
     }
 }
