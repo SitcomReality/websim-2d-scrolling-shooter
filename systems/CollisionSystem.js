@@ -25,8 +25,9 @@ export class CollisionSystem {
                         this.scoreGained += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
                         
-                        // 2% chance to drop health pickup
-                        if (Math.random() < 0.02) {
+                        // Use player's adjusted chance for health pickup
+                        const dropChance = player.healthPickupChance || 0.02;
+                        if (Math.random() < dropChance) {
                             powerUpSystem.spawnHealthPickup(enemy.x, enemy.y);
                         }
                     }

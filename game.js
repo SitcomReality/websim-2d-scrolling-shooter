@@ -51,6 +51,7 @@ class Game {
         this.collisionSystem = new CollisionSystem();
         this.particleSystem = new ParticleSystem();
         this.powerUpSystem = new PowerUpSystem();
+        this.powerUpSystem.player = this.player; // Allow powerUpSystem to access player stats
         this.upgradeSystem = new UpgradeSystem();
         
         this.gameEngine.addEntity(this.player);

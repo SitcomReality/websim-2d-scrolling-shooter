@@ -4,7 +4,9 @@ export class UpgradeSystem {
             new HealthUpgrade(),
             new DamageUpgrade(),
             new SpeedUpgrade(),
-            new FireRateUpgrade()
+            new FireRateUpgrade(),
+            new HealthPickupChanceUpgrade(),
+            new HealthPickupAmountUpgrade()
         ];
         
         this.playerUpgrades = new Map();
@@ -152,5 +154,45 @@ class FireRateUpgrade extends BaseUpgrade {
     
     apply(player, values) {
         player.fireRate = (player.fireRate || 150) * values.fireRateMultiplier;
+    }
+}
+
+class HealthPickupChanceUpgrade extends BaseUpgrade {
+    constructor() {
+        super('Health Pickup Chance');
+    }
+    
+    getValues(rarity) {
+        const values = {
+            common: 0.02,
+            uncommon: 0.03,
+            rare: 0.05,
+            legendary: 0.08
+        };
+        return { chanceIncrease: values[rarity] };
+    }
+    
+    apply(player, values) {
+        player.healthPickupChance = (player.healthPickupChance || 0.02) + values.chanceIncrease;
+    }
+}
+
+class HealthPickupAmountUpgrade extends BaseUpgrade {
+    constructor() {
+        super('Health Pickup Value');
+    }
+    
+    getValues(rarity) {
+        const values = {
+            common: 3,
+            uncommon: 5,
+            rare: 7,
+            legendary: 10
+        };
+        return { amountIncrease: values[rarity] };
+    }
+    
+    apply(player, values) {
+        player.healthPickupAmount = (player.healthPickupAmount || 5) + values.amountIncrease;
     }
 }

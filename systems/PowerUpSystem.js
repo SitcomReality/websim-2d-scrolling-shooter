@@ -20,7 +20,8 @@ export class PowerUpSystem {
     }
     
     spawnHealthPickup(x, y) {
-        this.powerUps.push(new HealthPickup(x, y));
+        const healthAmount = this.player?.healthPickupAmount || 5;
+        this.powerUps.push(new HealthPickup(x, y, healthAmount));
     }
     
     render(ctx) {
@@ -41,11 +42,11 @@ export class PowerUpSystem {
 import { Entity } from '../entities/Entity.js';
 
 class HealthPickup extends Entity {
-    constructor(x, y) {
+    constructor(x, y, healthAmount = 5) {
         super(x, y, 20, 20);
-        this.speed = 1.2; // Slightly faster than tank enemies (1.0)
+        this.speed = 1.2;
         this.color = '#00ff00';
-        this.value = 5;
+        this.value = healthAmount;
     }
     
     update(deltaTime) {
@@ -78,6 +79,7 @@ class HealthPickup extends Entity {
     
     apply(player) {
         const maxHealth = player.maxHealth || 100;
-        player.health = Math.min(player.health + this.value, maxHealth);
+        const healthAmount = player.healthPickupAmount || this.value;
+        player.health = Math.min(player.health + healthAmount, maxHealth);
     }
 }
