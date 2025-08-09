@@ -128,11 +128,15 @@ class Game {
                 this.player,
                 enemies,
                 playerBullets,
-                this.particleSystem
+                this.particleSystem,
+                this.powerUpSystem
             );
             
             this.score += this.collisionSystem.getScoreGained();
             this.health = Math.max(0, this.health - this.collisionSystem.getDamageTaken());
+            
+            // Check for power-up collisions
+            this.powerUpSystem.checkPlayerCollision(this.player);
             
             // XP gain from destroying enemies
             this.xp += this.collisionSystem.getScoreGained();

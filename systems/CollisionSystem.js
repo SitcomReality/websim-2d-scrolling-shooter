@@ -7,7 +7,7 @@ export class CollisionSystem {
         this.damageTextSystem = new DamageTextSystem();
     }
     
-    checkCollisions(player, enemies, playerBullets, particleSystem) {
+    checkCollisions(player, enemies, playerBullets, particleSystem, powerUpSystem) {
         this.scoreGained = 0;
         this.damageTaken = 0;
         
@@ -24,6 +24,11 @@ export class CollisionSystem {
                         enemies.splice(j, 1);
                         this.scoreGained += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
+                        
+                        // 2% chance to drop health pickup
+                        if (Math.random() < 0.02) {
+                            powerUpSystem.spawnHealthPickup(enemy.x, enemy.y);
+                        }
                     }
                     this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, 'physical');
                     break;
