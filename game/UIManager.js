@@ -1,3 +1,4 @@
+import { EventEmitter } from '../utils/EventEmitter.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 
 export class UIManager extends EventEmitter {
@@ -102,4 +103,3 @@ export class UIManager extends EventEmitter {
         this.levelUpOverlay.style.display = 'none';
     }
 }
-
