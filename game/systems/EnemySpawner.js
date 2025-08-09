@@ -11,7 +11,7 @@ export class EnemySpawner {
         // Progressive enemy unlock system
         this.enemyTypes = ['basic', 'fast', 'zigzag', 'tank'];
         this.unlockedTypes = ['basic']; // Start with only basic
-        this.unlockLevel = 2; // First unlock happens at level 2
+        this.currentUnlockLevel = 1; // Track current unlock level
     }
     
     update(deltaTime, playerLevel) {
@@ -33,13 +33,11 @@ export class EnemySpawner {
     }
     
     unlockEnemyTypes(playerLevel) {
-        const unlockOrder = ['basic', 'fast', 'zigzag', 'tank'];
+        // Calculate how many types should be unlocked
+        const typesToUnlock = Math.min(playerLevel, this.enemyTypes.length);
         
-        // Calculate how many types should be unlocked (including basic)
-        const typesToUnlock = Math.min(playerLevel, unlockOrder.length);
-        
-        // Update unlocked types
-        this.unlockedTypes = unlockOrder.slice(0, typesToUnlock);
+        // Update unlocked types based on player level
+        this.unlockedTypes = this.enemyTypes.slice(0, typesToUnlock);
     }
     
     updateSpawnRate(playerLevel) {
@@ -73,6 +71,7 @@ export class EnemySpawner {
         this.enemies = [];
         this.wave = 1;
         this.spawnRate = 2000;
-        this.unlockedTypes = ['basic'];
+        this.unlockedTypes = ['basic']; // Reset to only basic
+        this.currentUnlockLevel = 1;
     }
 }
