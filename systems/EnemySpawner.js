@@ -38,9 +38,10 @@ export class EnemySpawner {
     
     getRandomEnemyType() {
         const rand = Math.random();
-        if (rand < 0.7) return 'basic';
-        if (rand < 0.9) return 'fast';
-        return 'tank';
+        if (rand < 0.6) return 'basic';
+        if (rand < 0.8) return 'fast';
+        if (rand < 0.95) return 'tank';
+        return 'zigzag';
     }
     
     render(ctx) {
@@ -57,4 +58,3 @@ export class EnemySpawner {
         this.spawnRate = 2000;
     }
 }
-

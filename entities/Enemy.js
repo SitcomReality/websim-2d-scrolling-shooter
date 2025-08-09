@@ -21,6 +21,15 @@ export class Enemy extends Entity {
             this.health = 3;
             this.points = 50;
             this.color = '#ff0000';
+        } else if (type === 'zigzag') {
+            this.speed = 1.5;
+            this.health = 2;
+            this.points = 30;
+            this.color = '#ff00ff';
+            this.horizontalSpeed = 2;
+            this.direction = Math.random() < 0.5 ? 1 : -1;
+            this.amplitude = 50 + Math.random() * 100;
+            this.startingX = x;
         } else {
             this.color = '#ff9900';
         }
@@ -30,6 +39,16 @@ export class Enemy extends Entity {
     
     update(deltaTime) {
         this.y += this.speed;
+        
+        if (this.type === 'zigzag') {
+            // Move in a sine wave pattern
+            this.x = this.startingX + Math.sin((this.y - this.startingX) * 0.02) * this.amplitude;
+            
+            // Bounce off screen edges
+            if (this.x <= 30 || this.x >= 770) {
+                this.direction *= -1;
+            }
+        }
         
         // Simple AI: shoot occasionally
         if (Date.now() - this.lastFireTime > this.fireRate) {
@@ -82,4 +101,3 @@ export class Enemy extends Entity {
         return this.bullets;
     }
 }
-
