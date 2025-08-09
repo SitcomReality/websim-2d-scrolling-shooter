@@ -108,8 +108,9 @@ class Game {
     renderStarfield() {
         this.ctx.fillStyle = 'white';
         for (let i = 0; i < 100; i++) {
-            const x = (i * 73) % this.canvas.width;
-            const y = (Date.now() * 0.05 + i * 50) % this.canvas.height;
+            const seed = i * 73;
+            const x = (seed * 997) % this.canvas.width;
+            const y = (Date.now() * 0.05 + seed * 23) % this.canvas.height;
             this.ctx.fillRect(x, y, 1, 1);
         }
     }
@@ -129,4 +130,3 @@ class Game {
 document.addEventListener('DOMContentLoaded', () => {
     new Game();
 });
-
