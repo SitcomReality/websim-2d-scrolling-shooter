@@ -67,11 +67,6 @@ class Game {
         this.isPausedForLevelUp = false;
         this.levelUpDelayTimer = 0;
         this.isLevelUpPending = false;
-        
-        // Initialize player health
-        this.player.health = 100;
-        this.player.maxHealth = 100;
-        
         this.gameLoop();
     }
     
@@ -277,7 +272,8 @@ class Game {
     
     updateUI() {
         this.scoreDisplay.textContent = `Score: ${this.score}`;
-        this.healthFill.style.width = `${(this.player.health / (this.player.maxHealth || 100)) * 100}%`;
+        const healthPercentage = (this.health / 100) * 100;
+        this.healthFill.style.width = `${healthPercentage}%`;
         
         const xpPercentage = (this.xp / this.xpToNextLevel) * 100;
         this.xpFill.style.width = `${xpPercentage}%`;
