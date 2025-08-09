@@ -241,4 +241,14 @@ export class Game {
         // Render damage text
         this.collisionSystem.getDamageTextSystem().render(this.ctx);
     }
+    
+    checkPlayerCollision(player) {
+        for (let i = this.powerUps.length - 1; i >= 0; i--) {
+            const powerUp = this.powerUps[i];
+            if (powerUp.intersects(player)) {
+                powerUp.apply(player);
+                this.powerUps.splice(i, 1);
+            }
+        }
+    }
 }
