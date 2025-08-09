@@ -378,7 +378,7 @@ body {
     gap: 8px;
 }
 
-.upgrade-item, .enemy-item {
+.upgrade-item, .enemy-item, .stat-item {
     padding: 8px;
     background: rgba(0, 255, 255, 0.1);
     border: 1px solid rgba(0, 255, 255, 0.3);
@@ -387,7 +387,24 @@ body {
     transition: all 0.3s ease;
 }
 
-.upgrade-item:hover, .enemy-item:hover {
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-name {
+    color: #00ffff;
+    font-size: 11px;
+}
+
+.stat-value {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.upgrade-item:hover, .enemy-item:hover, .stat-item:hover {
     background: rgba(0, 255, 255, 0.2);
     transform: translateX(2px);
 }

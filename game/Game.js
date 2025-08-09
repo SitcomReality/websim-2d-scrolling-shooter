@@ -92,19 +92,29 @@ export class Game {
     }
     
     updateSidePanels() {
-        // Update upgrades panel
-        const upgradesList = document.getElementById('unlocked-upgrades-list');
-        if (upgradesList) {
-            upgradesList.innerHTML = '';
-            for (const [upgradeName, data] of this.upgradeSystem.playerUpgrades) {
+        // Update ship stats panel
+        const statsList = document.getElementById('ship-stats-list');
+        if (statsList) {
+            statsList.innerHTML = '';
+            
+            const stats = [
+                { name: 'Speed', value: this.player.speed?.toFixed(1) || '5.0', unit: '' },
+                { name: 'Fire Rate', value: Math.round(1000 / (this.player.fireRate || 150)), unit: '/sec' },
+                { name: 'Damage', value: this.player.damage || 1, unit: '' },
+                { name: 'Max Health', value: this.player.maxHealth || 100, unit: 'HP' },
+                { name: 'Health Drop Chance', value: Math.round((this.player.healthPickupChance || 0.02) * 100), unit: '%' },
+                { name: 'Health Restore', value: this.player.healthPickupAmount || 5, unit: 'HP' }
+            ];
+            
+            stats.forEach(stat => {
                 const item = document.createElement('div');
-                item.className = 'upgrade-item';
+                item.className = 'stat-item';
                 item.innerHTML = `
-                    <div>${upgradeName}</div>
-                    <div class="upgrade-count">Level ${data.count}</div>
+                    <div class="stat-name">${stat.name}</div>
+                    <div class="stat-value">${stat.value}${stat.unit}</div>
                 `;
-                upgradesList.appendChild(item);
-            }
+                statsList.appendChild(item);
+            });
         }
 
         // Update enemies panel
