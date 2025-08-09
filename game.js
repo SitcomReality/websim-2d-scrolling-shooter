@@ -185,7 +185,7 @@ class Game {
         choicesContainer.innerHTML = '';
         
         this.upgradeChoices.forEach((choice, index) => {
-            const card = this.upgradeSystem.createUpgradeCard(choice, index);
+            const card = this.createUpgradeCard(choice, index);
             choicesContainer.appendChild(card);
         });
         
@@ -214,6 +214,12 @@ class Game {
         } else if (upgrade.name === 'Fire Rate') {
             description = 'Increases your firing speed';
             valueText = `${Math.round((1 - values.fireRateMultiplier) * 100)}% Faster`;
+        } else if (upgrade.name === 'Health Pickup Chance') {
+            description = 'Increases chance of health pickups from enemies';
+            valueText = `+${Math.round(values.chanceIncrease * 100)}% Chance`;
+        } else if (upgrade.name === 'Health Pickup Value') {
+            description = 'Increases health restored by pickups';
+            valueText = `+${values.amountIncrease} Health`;
         }
         
         card.innerHTML = `
