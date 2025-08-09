@@ -10,32 +10,35 @@ export class Player extends Entity {
         this.lastFireTime = 0;
         this.color = '#00ffff';
         this.damage = 1;
+        this.invulnerable = false;
     }
     
     update(deltaTime, inputState) {
-        // Movement
-        this.velocity.x = 0;
-        this.velocity.y = 0;
-        
-        if (inputState.left) this.velocity.x = -(this.speed || 5);
-        if (inputState.right) this.velocity.x = this.speed || 5;
-        if (inputState.up) this.velocity.y = -(this.speed || 5);
-        if (inputState.down) this.velocity.y = this.speed || 5;
-        
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-        
-        // Keep player in bounds
-        this.x = Math.max(20, Math.min(780, this.x));
-        this.y = Math.max(20, Math.min(580, this.y));
-        
-        // Shooting
-        if (inputState.shoot && Date.now() - this.lastFireTime > (this.fireRate || 150)) {
-            this.shoot();
-            this.lastFireTime = Date.now();
+        if (!this.invulnerable) {
+            // Movement
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+            
+            if (inputState.left) this.velocity.x = -(this.speed || 5);
+            if (inputState.right) this.velocity.x = this.speed || 5;
+            if (inputState.up) this.velocity.y = -(this.speed || 5);
+            if (inputState.down) this.velocity.y = this.speed || 5;
+            
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+            
+            // Keep player in bounds
+            this.x = Math.max(20, Math.min(780, this.x));
+            this.y = Math.max(20, Math.min(580, this.y));
+            
+            // Shooting
+            if (inputState.shoot && Date.now() - this.lastFireTime > (this.fireRate || 150)) {
+                this.shoot();
+                this.lastFireTime = Date.now();
+            }
         }
         
-        // Update bullets
+        // Always update bullets
         this.bullets.forEach(bullet => bullet.update(deltaTime));
         this.bullets = this.bullets.filter(bullet => bullet.alive);
     }
@@ -48,6 +51,13 @@ export class Player extends Entity {
     render(ctx) {
         // Render player ship
         ctx.save();
+        
+        if (this.invulnerable) {
+            // Flashing effect when invulnerable
+            const flash = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+            ctx.globalAlpha = 0.7 + flash * 0.3;
+        }
+        
         ctx.fillStyle = this.color;
         ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;

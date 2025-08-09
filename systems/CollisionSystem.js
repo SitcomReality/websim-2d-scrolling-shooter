@@ -32,7 +32,7 @@ export class CollisionSystem {
         
         // Player vs enemies
         for (let enemy of enemies) {
-            if (player.intersects(enemy)) {
+            if (player.intersects(enemy) && !player.invulnerable) {
                 const damage = 20;
                 this.damageTaken += damage;
                 enemy.alive = false;
@@ -44,7 +44,7 @@ export class CollisionSystem {
         // Player vs enemy bullets
         enemies.forEach(enemy => {
             enemy.getBullets().forEach(bullet => {
-                if (bullet.intersects(player)) {
+                if (bullet.intersects(player) && !player.invulnerable) {
                     bullet.alive = false;
                     const damage = 10;
                     this.damageTaken += damage;
@@ -67,4 +67,3 @@ export class CollisionSystem {
         return this.damageTextSystem;
     }
 }
-

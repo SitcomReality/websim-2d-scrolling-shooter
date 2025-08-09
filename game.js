@@ -20,6 +20,8 @@ class Game {
         this.level = 1;
         this.xpToNextLevel = 100;
         this.isPausedForLevelUp = false;
+        this.levelUpDelayTimer = 0;
+        this.isLevelUpPending = false;
         
         this.setupUI();
         this.initializeSystems();
@@ -63,6 +65,8 @@ class Game {
         this.level = 1;
         this.xpToNextLevel = 100;
         this.isPausedForLevelUp = false;
+        this.levelUpDelayTimer = 0;
+        this.isLevelUpPending = false;
         this.gameLoop();
     }
     
@@ -74,6 +78,8 @@ class Game {
         this.level = 1;
         this.xpToNextLevel = 100;
         this.isPausedForLevelUp = false;
+        this.levelUpDelayTimer = 0;
+        this.isLevelUpPending = false;
         this.startGame();
     }
     
@@ -90,40 +96,58 @@ class Game {
     update() {
         if (this.isPausedForLevelUp) return;
         
+        if (this.isLevelUpPending) {
+            this.levelUpDelayTimer -= 16.67;
+            if (this.levelUpDelayTimer <= 0) {
+                this.showUpgradeSelection();
+                this.isLevelUpPending = false;
+            }
+            // Allow animations but don't update game logic
+            this.particleSystem.update(16.67);
+            this.collisionSystem.getDamageTextSystem().update(16.67);
+            return;
+        }
+        
         const deltaTime = 16.67; // 60 FPS
         
-        this.player.update(deltaTime, this.inputHandler.getInputState());
-        this.enemySpawner.update(deltaTime);
+        if (!this.isLevelUpPending) {
+            this.player.update(deltaTime, this.inputHandler.getInputState());
+            this.enemySpawner.update(deltaTime);
+        }
+        
         this.particleSystem.update(deltaTime);
-        this.powerUpSystem.update(deltaTime);
         this.collisionSystem.getDamageTextSystem().update(deltaTime);
         
-        const enemies = this.enemySpawner.getEnemies();
-        const playerBullets = this.player.getBullets();
-        
-        this.collisionSystem.checkCollisions(
-            this.player,
-            enemies,
-            playerBullets,
-            this.particleSystem
-        );
-        
-        this.score += this.collisionSystem.getScoreGained();
-        this.health = Math.max(0, this.health - this.collisionSystem.getDamageTaken());
-        
-        // XP gain from destroying enemies
-        this.xp += this.collisionSystem.getScoreGained();
-        this.checkLevelUp();
+        if (!this.isLevelUpPending) {
+            this.powerUpSystem.update(deltaTime);
+            
+            const enemies = this.enemySpawner.getEnemies();
+            const playerBullets = this.player.getBullets();
+            
+            this.collisionSystem.checkCollisions(
+                this.player,
+                enemies,
+                playerBullets,
+                this.particleSystem
+            );
+            
+            this.score += this.collisionSystem.getScoreGained();
+            this.health = Math.max(0, this.health - this.collisionSystem.getDamageTaken());
+            
+            // XP gain from destroying enemies
+            this.xp += this.collisionSystem.getScoreGained();
+            this.checkLevelUp();
+        }
         
         this.updateUI();
         
-        if (this.health <= 0) {
+        if (this.health <= 0 && !this.isLevelUpPending) {
             this.gameOver();
         }
     }
     
     checkLevelUp() {
-        if (this.xp >= this.xpToNextLevel) {
+        if (this.xp >= this.xpToNextLevel && !this.isLevelUpPending) {
             this.levelUp();
         }
     }
@@ -132,6 +156,15 @@ class Game {
         this.level++;
         this.xp = 0;
         this.xpToNextLevel = Math.floor(this.xpToNextLevel * 1.5);
+        this.isLevelUpPending = true;
+        this.levelUpDelayTimer = 500; // 500ms delay
+        
+        // Make player invulnerable during transition
+        this.player.invulnerable = true;
+    }
+
+    showUpgradeSelection() {
+        this.player.invulnerable = false;
         this.isPausedForLevelUp = true;
         
         // Generate upgrade choices
@@ -140,10 +173,6 @@ class Game {
             this.upgradeSystem.playerUpgrades
         );
         
-        this.showUpgradeSelection();
-    }
-
-    showUpgradeSelection() {
         this.levelUpOverlay.style.display = 'none';
         
         const overlay = document.getElementById('upgrade-selection-overlay');
