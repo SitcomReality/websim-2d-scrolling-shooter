@@ -20,7 +20,8 @@ export class CollisionSystem {
                     bullet.alive = false;
                     const damage = bullet.damage || 1;
                     if (enemy.takeDamage(damage)) {
-                        enemy.alive = false;
+                        // Immediately remove the enemy from the array
+                        enemies.splice(j, 1);
                         this.scoreGained += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
                     }
@@ -31,11 +32,12 @@ export class CollisionSystem {
         }
         
         // Player vs enemies
-        for (let enemy of enemies) {
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const enemy = enemies[i];
             if (player.intersects(enemy) && !player.invulnerable) {
                 const damage = 20;
                 this.damageTaken += damage;
-                enemy.alive = false;
+                enemies.splice(i, 1); // Immediately remove the enemy
                 particleSystem.createExplosion(enemy.x, enemy.y);
                 this.damageTextSystem.addDamage(player.x, player.y, damage, 'physical');
             }
@@ -43,15 +45,18 @@ export class CollisionSystem {
         
         // Player vs enemy bullets
         enemies.forEach(enemy => {
-            enemy.getBullets().forEach(bullet => {
+            const enemyBullets = enemy.getBullets();
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                const bullet = enemyBullets[i];
                 if (bullet.intersects(player) && !player.invulnerable) {
                     bullet.alive = false;
+                    enemyBullets.splice(i, 1);
                     const damage = 10;
                     this.damageTaken += damage;
                     particleSystem.createExplosion(bullet.x, bullet.y);
                     this.damageTextSystem.addDamage(player.x, player.y, damage, 'physical');
                 }
-            });
+            }
         });
     }
     
