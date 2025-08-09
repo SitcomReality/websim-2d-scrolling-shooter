@@ -185,7 +185,7 @@ class Game {
         choicesContainer.innerHTML = '';
         
         this.upgradeChoices.forEach((choice, index) => {
-            const card = this.createUpgradeCard(choice, index);
+            const card = this.upgradeSystem.createUpgradeCard(choice, index);
             choicesContainer.appendChild(card);
         });
         
