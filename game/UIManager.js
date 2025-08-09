@@ -1,5 +1,9 @@
     showLevelUp(level) {
-        // Skip the level up overlay and go straight to upgrade selection
-        this.emit('continue');
+        // Skip the level up overlay entirely
+        const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
+            level,
+            this.upgradeSystem.playerUpgrades
+        );
+        this.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
     }
 

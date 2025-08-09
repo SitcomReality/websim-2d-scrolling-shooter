@@ -129,6 +129,7 @@ export class Game {
                 this.gameState.level,
                 this.upgradeSystem.playerUpgrades
             );
+            this.gameState.isPausedForLevelUp = true;
             this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
         }
         
