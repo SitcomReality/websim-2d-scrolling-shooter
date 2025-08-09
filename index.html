@@ -5,28 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Scrolling Shooter</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/synergy-notifications.css">
+    <link rel="stylesheet" href="styles/shop.css">
 </head>
 <body>
     <div id="game-container">
-        <div id="xp-container">
-            <div id="xp-bar">
-                <div id="xp-fill"></div>
-            </div>
-            <div id="level-display">Level 1</div>
-        </div>
-        
-        <canvas id="game-canvas" width="800" height="600"></canvas>
-        
         <div id="health-container">
             <div id="health-bar">
                 <div id="health-fill"></div>
+                <div id="health-value">100 / 100</div>
             </div>
             <div id="score-display">Score: 0</div>
         </div>
         
-        <div id="ui-overlay">
-            <button id="start-btn">Start Game</button>
-            <button id="restart-btn" style="display: none;">Restart</button>
+        <div id="left-panel">
+            <div id="currency-display" style="margin-bottom:10px; color:#ffff00; font-weight:bold; text-align:center;">Currency: 0</div>
+            <h3>Ship Stats</h3>
+            <div id="ship-stats-list"></div>
+        </div>
+        
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        
+        <div id="right-panel">
+            <h3>Unlocked Enemies</h3>
+            <div id="unlocked-enemies-list"></div>
+        </div>
+        
+        <!-- Dev Panel -->
+        <div id="dev-panel">
+            <h3>Dev Tools</h3>
+            <button id="level-up-btn" class="dev-btn">Instant Level Up</button>
+            <button id="heal-btn" class="dev-btn">Full Heal</button>
+            <button id="max-xp-btn" class="dev-btn">Max XP</button>
+            <button id="kill-all-btn" class="dev-btn">Kill All Enemies</button>
+            <button id="give-currency-btn" class="dev-btn">Give 1000 Currency</button>
+            <button id="open-stat-debug-btn" class="dev-btn">Stat Debug</button>
+        </div>
+        
+        <div id="xp-container">
+            <div id="xp-bar">
+                <div id="xp-fill"></div>
+                <div id="xp-value">0 / 100</div>
+            </div>
+            <div id="level-display">Level 1</div>
         </div>
     </div>
     
@@ -57,4 +78,3 @@
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-
