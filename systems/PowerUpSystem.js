@@ -19,8 +19,12 @@ export class PowerUpSystem {
         // Implementation for power-ups
     }
     
+    spawnHealthPickup(x, y) {
+        this.powerUps.push(new HealthPickup(x, y));
+    }
+    
     render(ctx) {
-        // Implementation for rendering power-ups
+        this.powerUps.forEach(powerUp => powerUp.render(ctx));
     }
     
     checkPlayerCollision(player) {
@@ -33,6 +37,8 @@ export class PowerUpSystem {
         }
     }
 }
+
+import { Entity } from '../entities/Entity.js';
 
 class HealthPickup extends Entity {
     constructor(x, y) {
@@ -75,5 +81,3 @@ class HealthPickup extends Entity {
         player.health = Math.min(player.health + this.value, maxHealth);
     }
 }
-
-import { Entity } from '../entities/Entity.js';
