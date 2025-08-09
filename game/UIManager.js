@@ -5,6 +5,8 @@ export class UIManager extends EventEmitter {
         super();
         this.gameState = gameState;
         this.upgradeChoices = [];
+        this.lastHealth = 100;
+        this.lastXp = 0;
         this.initializeElements();
     }
     
@@ -33,12 +35,29 @@ export class UIManager extends EventEmitter {
     
     update() {
         this.scoreDisplay.textContent = `Score: ${this.gameState.score}`;
-        const healthPercentage = (this.gameState.health / 100) * 100;
-        this.healthFill.style.width = `${healthPercentage}%`;
         
+        // Health change animation
+        if (this.gameState.health !== this.lastHealth) {
+            this.healthFill.style.width = `${this.gameState.health}%`;
+            document.getElementById('health-bar').classList.add('flash-health');
+            setTimeout(() => {
+                document.getElementById('health-bar').classList.remove('flash-health');
+            }, 600);
+            this.lastHealth = this.gameState.health;
+        }
+        
+        // XP change animation
         const xpPercentage = (this.gameState.xp / this.gameState.xpToNextLevel) * 100;
-        this.xpFill.style.width = `${xpPercentage}%`;
+        if (this.gameState.xp !== this.lastXp && this.gameState.xp > this.lastXp) {
+            this.xpFill.style.width = `${xpPercentage}%`;
+            document.getElementById('xp-bar').classList.add('flash-xp');
+            setTimeout(() => {
+                document.getElementById('xp-bar').classList.remove('flash-xp');
+            }, 600);
+        }
+        
         this.levelDisplay.textContent = `Level ${this.gameState.level}`;
+        this.lastXp = this.gameState.xp;
     }
     
     showUpgradeSelection(upgradeChoices, upgradeSystem) {
@@ -119,4 +138,3 @@ export class UIManager extends EventEmitter {
         this.upgradeSelectionOverlay.style.display = 'none';
     }
 }
-
