@@ -76,11 +76,12 @@ export class ProceduralUpgrade extends BaseUpgrade {
         const prefixes = ['Enhanced', 'Superior', 'Modified', 'Augmented'];
         const suffixes = ['of Power', 'of Might', 'of Fury', 'of Destruction'];
 
-        if (rng() > 0.5 && !upgrade.name.includes(prefixes[0])) {
+        // Ensure upgrade.name exists before checking includes
+        if (upgrade.name && rng() > 0.5 && !upgrade.name.includes(prefixes[0])) {
             upgrade.name = prefixes[Math.floor(rng() * prefixes.length)] + ' ' + upgrade.name;
         }
 
-        if (rng() > 0.7) {
+        if (upgrade.name && rng() > 0.7) {
             upgrade.name += ' ' + suffixes[Math.floor(rng() * suffixes.length)];
         }
     }
