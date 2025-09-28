@@ -9,6 +9,11 @@ export class BaseUpgrade {
         this.tags = config.tags || [];
         this.synergies = config.synergies || [];
         this.incompatible = config.incompatible || [];
+        
+        // Store custom apply function if provided
+        if (config.apply && typeof config.apply === 'function') {
+            this.apply = config.apply;
+        }
     }
 
     generateId() {
@@ -50,7 +55,8 @@ export class BaseUpgrade {
     }
 
     apply(player, values = {}) {
-        throw new Error('apply() must be implemented by subclass');
+        // Default implementation - can be overridden in subclasses or via config
+        console.warn(`Default apply() called for upgrade: ${this.name}. Override this method in your subclass.`);
     }
 
     getDisplayValues(values) {
