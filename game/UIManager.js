@@ -29,6 +29,35 @@ export class UIManager extends EventEmitter {
         this.elements.restartBtn.addEventListener('click', () => {
             this.emit('restart');
         });
+
+        // Add dev panel event listeners
+        const devLevelUpBtn = document.getElementById('dev-level-up');
+        if (devLevelUpBtn) {
+            devLevelUpBtn.addEventListener('click', () => {
+                this.emit('devLevelUp');
+            });
+        }
+
+        const devMaxHealthBtn = document.getElementById('dev-max-health');
+        if (devMaxHealthBtn) {
+            devMaxHealthBtn.addEventListener('click', () => {
+                this.emit('devMaxHealth');
+            });
+        }
+
+        const devGodModeBtn = document.getElementById('dev-god-mode');
+        if (devGodModeBtn) {
+            devGodModeBtn.addEventListener('click', () => {
+                this.emit('devGodMode');
+            });
+        }
+
+        const devClearEnemiesBtn = document.getElementById('dev-clear-enemies');
+        if (devClearEnemiesBtn) {
+            devClearEnemiesBtn.addEventListener('click', () => {
+                this.emit('devClearEnemies');
+            });
+        }
     }
     
     update() {

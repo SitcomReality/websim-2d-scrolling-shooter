@@ -41,8 +41,54 @@ export class Game {
         this.uiManager.on('continue', () => this.levelUpManager.continueAfterLevelUp());
         this.uiManager.on('upgradeSelected', (index) => this.levelUpManager.handleUpgradeSelection(index));
         
+        // Add dev panel events
+        this.uiManager.on('devLevelUp', () => this.handleDevLevelUp());
+        this.uiManager.on('devMaxHealth', () => this.handleDevMaxHealth());
+        this.uiManager.on('devGodMode', () => this.handleDevGodMode());
+        this.uiManager.on('devClearEnemies', () => this.handleDevClearEnemies());
+        
         // Update side panels
         this.sidePanelManager.updateSidePanels();
+    }
+
+    // Dev panel handlers
+    handleDevLevelUp() {
+        // Force level up by setting XP to max
+        this.gameState.xp = this.gameState.xpToNextLevel;
+        this.levelUpManager.handleLevelUp();
+    }
+
+    handleDevMaxHealth() {
+        // Set player health to max
+        this.player.health = this.player.maxHealth || 100;
+        this.gameState.health = this.player.health;
+        this.uiManager.update();
+    }
+
+    handleDevGodMode() {
+        // Toggle invulnerability
+        this.player.invulnerable = !this.player.invulnerable;
+        const btn = document.getElementById('dev-god-mode');
+        if (btn) {
+            btn.textContent = this.player.invulnerable ? 'Disable God Mode' : 'God Mode';
+            btn.style.background = this.player.invulnerable 
+                ? 'linear-gradient(135deg, #00ff00, #00aa00)' 
+                : 'linear-gradient(135deg, #660000, #880000)';
+        }
+    }
+
+    handleDevClearEnemies() {
+        // Clear all enemies
+        this.enemySpawner.enemies = [];
+        if (this.particleSystem) {
+            // Add some particle effects for visual feedback
+            for (let i = 0; i < 50; i++) {
+                this.particleSystem.createExplosion(
+                    Math.random() * this.canvas.width,
+                    Math.random() * this.canvas.height
+                );
+            }
+        }
     }
     
     startGame() {
