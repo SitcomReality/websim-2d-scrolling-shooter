@@ -173,24 +173,53 @@ export class UpgradeSystem {
     generateUpgradeChoices(playerState, existingUpgrades, count = 3) {
         const choices = [];
 
-        // Get handcrafted upgrades
-        const handcrafted = this.registry.getUpgradeChoices(
-            playerState,
-            existingUpgrades,
-            Math.floor(count * 0.6)
+        // Get stat upgrades (simple handcrafted upgrades)
+        const statUpgrades = this.registry.getByCategory('stat');
+        const availableStatUpgrades = statUpgrades.filter(upgrade => 
+            upgrade.canBeOffered(playerState, existingUpgrades)
         );
+        
+        // Add stat upgrades
+        const statCount = Math.min(2, availableStatUpgrades.length);
+        for (let i = 0; i < statCount; i++) {
+            if (availableStatUpgrades.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableStatUpgrades.length);
+                const upgrade = availableStatUpgrades.splice(randomIndex, 1)[0];
+                choices.push({
+                    upgrade: upgrade,
+                    values: upgrade.getValues?.(upgrade.rarity) || {}
+                });
+            }
+        }
 
-        choices.push(...handcrafted);
+        // Get weapon upgrades
+        const weaponUpgrades = this.registry.getByCategory('weapon');
+        const availableWeaponUpgrades = weaponUpgrades.filter(upgrade => 
+            upgrade.canBeOffered(playerState, existingUpgrades)
+        );
+        
+        // Add weapon upgrades
+        const weaponCount = Math.min(count - choices.length, availableWeaponUpgrades.length);
+        for (let i = 0; i < weaponCount; i++) {
+            if (availableWeaponUpgrades.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableWeaponUpgrades.length);
+                const upgrade = availableWeaponUpgrades.splice(randomIndex, 1)[0];
+                choices.push({
+                    upgrade: upgrade,
+                    values: upgrade.getValues?.(upgrade.rarity) || {}
+                });
+            }
+        }
 
-        // Generate procedural upgrades
-        const remainingCount = count - choices.length;
-        for (let i = 0; i < remainingCount; i++) {
-            const procedural = this.generator.generateRandomUpgrade(
-                playerState,
-                existingUpgrades,
-                'complex'
-            );
-            choices.push(procedural);
+        // Fill remaining slots with random upgrades if needed
+        while (choices.length < count) {
+            const randomUpgrade = this.registry.getRandomUpgrade();
+            if (randomUpgrade) {
+                choices.push({
+                    upgrade: randomUpgrade,
+                    values: randomUpgrade.getValues?.(randomUpgrade.rarity) || {}
+                });
+            }
         }
 
         return choices;

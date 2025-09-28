@@ -99,21 +99,18 @@ export class UpgradeRegistry {
 
     getUpgradeChoices(playerState, existingUpgrades, count = 3) {
         const choices = [];
-        const candidates = this.getAll().filter(upgrade => 
+        const allUpgrades = this.getAll();
+        
+        // Filter upgrades that can be offered
+        const availableUpgrades = allUpgrades.filter(upgrade => 
             upgrade.canBeOffered(playerState, existingUpgrades)
         );
 
-        // Weight by rarity and synergies
-        const weightedCandidates = candidates.map(upgrade => ({
-            upgrade,
-            weight: this.calculateWeight(upgrade, playerState, existingUpgrades)
-        }));
-
-        // Sort by weight and pick top choices
-        weightedCandidates.sort((a, b) => b.weight - a.weight);
-
-        for (let i = 0; i < Math.min(count, weightedCandidates.length); i++) {
-            choices.push(weightedCandidates[i].upgrade);
+        // Shuffle and pick random upgrades
+        for (let i = 0; i < Math.min(count, availableUpgrades.length); i++) {
+            const randomIndex = Math.floor(Math.random() * availableUpgrades.length);
+            const upgrade = availableUpgrades.splice(randomIndex, 1)[0];
+            choices.push(upgrade);
         }
 
         return choices;

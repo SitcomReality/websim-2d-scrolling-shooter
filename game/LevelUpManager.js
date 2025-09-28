@@ -58,9 +58,15 @@ export class LevelUpManager {
     handleUpgradeSelection(index) {
         const choices = this.uiManager.upgradeChoices;
         if (choices[index]) {
-            this.upgradeSystem.applyUpgrade(choices[index], this.player);
-            this.uiManager.hideUpgradeSelection();
-            this.gameState.isPausedForLevelUp = false;
+            // Ensure we're passing the upgrade object correctly
+            const upgradeChoice = choices[index];
+            if (upgradeChoice && upgradeChoice.upgrade) {
+                this.upgradeSystem.applyUpgrade(upgradeChoice, this.player);
+                this.uiManager.hideUpgradeSelection();
+                this.gameState.isPausedForLevelUp = false;
+            } else {
+                console.error('Invalid upgrade choice:', upgradeChoice);
+            }
         }
     }
 }
