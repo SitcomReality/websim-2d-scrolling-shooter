@@ -1,6 +1,7 @@
 import { UpgradeRegistry } from './UpgradeRegistry.js';
 import { UpgradeGenerator } from './UpgradeGenerator.js';
 import { BaseUpgrade } from './base/BaseUpgrade.js';
+import { HomingMissileUpgrade, ExplosiveRoundsUpgrade } from './weapons/index.js';
 
 export class UpgradeSystem {
     constructor() {
@@ -11,6 +12,7 @@ export class UpgradeSystem {
 
         this.initializeTemplates();
         this.initializeBaseUpgrades();
+        this.initializeWeaponUpgrades();
     }
 
     initializeTemplates() {
@@ -112,6 +114,35 @@ export class UpgradeSystem {
             },
             getValues: () => ({ speed: 0.5 })
         }));
+    }
+
+    initializeWeaponUpgrades() {
+        // Register weapon upgrade modules
+        this.registry.register(new HomingMissileUpgrade());
+        this.registry.register(new ExplosiveRoundsUpgrade());
+        
+        // Register templates for procedural generation
+        this.generator.registerTemplate('homing_missile', {
+            name: 'Homing Missiles',
+            description: 'Fires missiles that track enemies',
+            rarity: 'uncommon',
+            category: 'weapon',
+            tags: ['weapon', 'projectile', 'homing', 'missile'],
+            affinities: ['damage', 'speed'],
+            mutations: ['homingStrength', 'missileSpeed', 'explosionRadius'],
+            combinations: ['weapon_explosive', 'weapon_piercing']
+        });
+
+        this.generator.registerTemplate('explosive_rounds', {
+            name: 'Explosive Rounds',
+            description: 'Bullets explode on impact, damaging nearby enemies',
+            rarity: 'rare',
+            category: 'weapon',
+            tags: ['weapon', 'explosive', 'aoe', 'damage'],
+            affinities: ['damage', 'radius'],
+            mutations: ['explosionRadius', 'explosionDamage', 'knockback'],
+            combinations: ['weapon_homing', 'weapon_shrapnel']
+        });
     }
 
     generateUpgradeChoices(playerState, count = 3) {
