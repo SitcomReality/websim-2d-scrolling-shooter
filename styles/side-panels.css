@@ -1,0 +1,87 @@
+/* Side panels for ship stats and unlocked enemies */
+#left-panel, #right-panel {
+    position: absolute;
+    width: 200px;
+    min-height: 400px;
+    background: linear-gradient(135deg, #001122, #002244);
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    padding: 15px;
+    color: #00ffff;
+    font-family: 'Arial', sans-serif;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+#left-panel {
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#right-panel {
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#left-panel h3, #right-panel h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffff00;
+    text-shadow: 0 0 10px #ffff00;
+    font-size: 16px;
+}
+
+#unlocked-upgrades-list, #unlocked-enemies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.upgrade-item, .enemy-item, .stat-item {
+    padding: 8px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 5px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-name {
+    color: #00ffff;
+    font-size: 11px;
+}
+
+.stat-value {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.upgrade-item:hover, .enemy-item:hover, .stat-item:hover {
+    background: rgba(0, 255, 255, 0.2);
+    transform: translateX(2px);
+}
+
+.upgrade-count {
+    color: #ffff00;
+    font-weight: bold;
+}
+
+.enemy-name {
+    color: #ff6666;
+    font-weight: bold;
+}
+
+.enemy-description {
+    font-size: 10px;
+    color: #cccccc;
+}
+
