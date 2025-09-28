@@ -243,9 +243,8 @@ export class UpgradeSystem {
             return;
         }
 
-        if (upgrade.apply) {
-            upgrade.apply(player, values);
-        }
+        // Apply the upgrade
+        upgrade.apply(player, values);
 
         // Track upgrade
         if (!this.playerUpgrades.has(upgrade.id)) {
@@ -255,6 +254,11 @@ export class UpgradeSystem {
 
         // Update UI
         this.updatePlayerUI(player);
+        
+        // Update side panels to show new upgrades
+        if (window.gameInstance && window.gameInstance.sidePanelManager) {
+            window.gameInstance.sidePanelManager.updateSidePanels();
+        }
     }
 
     updatePlayerUI(player) {

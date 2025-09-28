@@ -119,6 +119,10 @@ export class Game {
     
     update(deltaTime) {
         const inputState = this.inputHandler.getInputState();
+        
+        // Update all weapon systems before player update
+        this.updateWeaponSystems(deltaTime);
+        
         this.player.update(deltaTime, inputState);
         
         // Pass player level to enemy spawner
@@ -188,6 +192,57 @@ export class Game {
         
         // Update damage text system
         this.collisionSystem.getDamageTextSystem().update(deltaTime);
+    }
+    
+    updateWeaponSystems(deltaTime) {
+        // Update homing missiles
+        if (this.player.missiles) {
+            this.player.missiles.forEach(missile => {
+                const enemies = this.enemySpawner.getEnemies();
+                missile.update(deltaTime, enemies);
+                const collision = missile.checkCollision(enemies);
+                if (collision.hit) {
+                    this.particleSystem.createExplosion(collision.x, collision.y);
+                }
+            });
+            this.player.missiles = this.player.missiles.filter(missile => missile.alive);
+        }
+        
+        // Update explosive bullets
+        if (this.player.explosiveBullets) {
+            const enemies = this.enemySpawner.getEnemies();
+            this.player.explosiveBullets.forEach(bullet => {
+                bullet.update(deltaTime, enemies);
+            });
+            this.player.explosiveBullets = this.player.explosiveBullets.filter(bullet => bullet.alive);
+        }
+        
+        // Update piercing bullets
+        if (this.player.piercingBullets) {
+            const enemies = this.enemySpawner.getEnemies();
+            this.player.piercingBullets.forEach(bullet => {
+                bullet.update(deltaTime, enemies);
+            });
+            this.player.piercingBullets = this.player.piercingBullets.filter(bullet => bullet.alive);
+        }
+        
+        // Update laser beams
+        if (this.player.laserBeams) {
+            const enemies = this.enemySpawner.getEnemies();
+            this.player.laserBeams.forEach(beam => {
+                beam.update(deltaTime, enemies);
+            });
+            this.player.laserBeams = this.player.laserBeams.filter(beam => beam.alive);
+        }
+        
+        // Update lightning bolts
+        if (this.player.lightningBolts) {
+            const enemies = this.enemySpawner.getEnemies();
+            this.player.lightningBolts.forEach(bolt => {
+                bolt.update(deltaTime, enemies);
+            });
+            this.player.lightningBolts = this.player.lightningBolts.filter(bolt => bolt.alive);
+        }
     }
     
     render() {
