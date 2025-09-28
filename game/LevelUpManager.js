@@ -12,9 +12,14 @@ export class LevelUpManager {
         this.gameState.xp = 0;
         this.gameState.xpToNextLevel = Math.floor(this.gameState.xpToNextLevel * 1.5);
 
-        // Go directly to upgrade selection
+        // Go directly to upgrade selection using the new upgrade system
         const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
-            this.gameState.level,
+            {
+                level: this.gameState.level,
+                score: this.gameState.score,
+                health: this.gameState.health,
+                maxHealth: this.gameState.maxHealth
+            },
             this.upgradeSystem.playerUpgrades
         );
         this.gameState.isPausedForLevelUp = true;

@@ -1,9 +1,27 @@
+import { HomingMissileUpgrade } from './weapons/HomingMissileUpgrade.js';
+import { ExplosiveRoundsUpgrade } from './weapons/ExplosiveRoundsUpgrade.js';
+import { LightningWeaponUpgrade } from './weapons/LightningWeaponUpgrade.js';
+import { LaserBeamUpgrade } from './weapons/LaserBeamUpgrade.js';
+import { PiercingShotsUpgrade } from './weapons/PiercingShotsUpgrade.js';
+
 export class UpgradeRegistry {
     constructor() {
         this.upgrades = new Map();
         this.categories = new Map();
         this.tags = new Map();
         this.rarities = new Map();
+        
+        // Register all weapon upgrades
+        this.registerWeaponUpgrades();
+    }
+
+    registerWeaponUpgrades() {
+        // Register weapon upgrade modules
+        this.register(new HomingMissileUpgrade());
+        this.register(new ExplosiveRoundsUpgrade());
+        this.register(new LightningWeaponUpgrade());
+        this.register(new LaserBeamUpgrade());
+        this.register(new PiercingShotsUpgrade());
     }
 
     register(upgrade) {
