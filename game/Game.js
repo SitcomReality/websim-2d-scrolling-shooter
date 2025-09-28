@@ -78,6 +78,9 @@ export class Game {
         
         this.gameState.isPausedForLevelUp = true;
         this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
+        
+        // Update enemy unlocks for the new level before updating panels
+        this.enemySpawner.unlockEnemyTypes(this.gameState.level);
         this.updateSidePanels();
     }
     
