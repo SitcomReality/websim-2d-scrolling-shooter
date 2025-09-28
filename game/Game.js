@@ -221,6 +221,9 @@ export class Game {
             );
             this.gameState.isPausedForLevelUp = true;
             this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
+            
+            // Ensure enemy unlocks are applied for the new level immediately
+            this.enemySpawner.unlockEnemyTypes(this.gameState.level);
             this.updateSidePanels();
         }
         
