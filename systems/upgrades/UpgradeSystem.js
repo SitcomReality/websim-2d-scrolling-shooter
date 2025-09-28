@@ -1,7 +1,7 @@
 import { UpgradeRegistry } from './UpgradeRegistry.js';
 import { UpgradeGenerator } from './UpgradeGenerator.js';
 import { BaseUpgrade } from './base/BaseUpgrade.js';
-import { HomingMissileUpgrade, ExplosiveRoundsUpgrade, LightningWeaponUpgrade } from './weapons/index.js';
+import { HomingMissileUpgrade, ExplosiveRoundsUpgrade, LightningWeaponUpgrade, LaserBeamUpgrade, PiercingShotsUpgrade } from './weapons/index.js';
 
 export class UpgradeSystem {
     constructor() {
@@ -121,6 +121,8 @@ export class UpgradeSystem {
         this.registry.register(new HomingMissileUpgrade());
         this.registry.register(new ExplosiveRoundsUpgrade());
         this.registry.register(new LightningWeaponUpgrade());
+        this.registry.register(new LaserBeamUpgrade());
+        this.registry.register(new PiercingShotsUpgrade());
         
         // Register templates for procedural generation
         this.generator.registerTemplate('homing_missile', {
@@ -143,6 +145,28 @@ export class UpgradeSystem {
             affinities: ['damage', 'radius'],
             mutations: ['explosionRadius', 'explosionDamage', 'knockback'],
             combinations: ['weapon_homing', 'weapon_shrapnel']
+        });
+
+        this.generator.registerTemplate('laser_beam', {
+            name: 'Laser Beam',
+            description: 'Fires a continuous laser beam that melts enemies',
+            rarity: 'rare',
+            category: 'weapon',
+            tags: ['weapon', 'laser', 'beam', 'continuous', 'burn'],
+            affinities: ['damage', 'duration'],
+            mutations: ['beamWidth', 'beamRange', 'burnDamage'],
+            combinations: ['weapon_piercing', 'weapon_lightning']
+        });
+
+        this.generator.registerTemplate('piercing_shots', {
+            name: 'Piercing Shots',
+            description: 'Bullets pierce through enemies, hitting multiple targets',
+            rarity: 'uncommon',
+            category: 'weapon',
+            tags: ['weapon', 'projectile', 'piercing', 'multi-target'],
+            affinities: ['damage', 'pierce'],
+            mutations: ['pierceCount', 'pierceDamageReduction', 'armorPiercing'],
+            combinations: ['weapon_laser', 'weapon_explosive']
         });
     }
 
