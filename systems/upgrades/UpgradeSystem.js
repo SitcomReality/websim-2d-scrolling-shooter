@@ -197,7 +197,22 @@ export class UpgradeSystem {
     }
 
     applyUpgrade(upgradeChoice, player) {
-        const { upgrade, values } = upgradeChoice;
+        // Handle both old format (direct upgrade) and new format ({upgrade, values})
+        let upgrade, values = {};
+        
+        if (upgradeChoice.upgrade) {
+            // New format: { upgrade: BaseUpgrade, values: {...} }
+            upgrade = upgradeChoice.upgrade;
+            values = upgradeChoice.values || {};
+        } else {
+            // Old format: BaseUpgrade directly
+            upgrade = upgradeChoice;
+        }
+
+        if (!upgrade || !upgrade.apply) {
+            console.error('Invalid upgrade choice:', upgradeChoice);
+            return;
+        }
 
         if (upgrade.apply) {
             upgrade.apply(player, values);
