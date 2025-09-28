@@ -23,6 +23,9 @@ export class Player extends Entity {
         this.maxChargeTime = 5000; // 5 seconds
         this.chargedBullets = 0;
         this.chargeRate = 1; // bullets per fireRate interval
+        
+        // Lightning bolts
+        this.lightningBolts = [];
     }
     
     update(deltaTime, inputState) {
@@ -104,6 +107,12 @@ export class Player extends Entity {
             });
             this.explosiveBullets = this.explosiveBullets.filter(bullet => bullet.alive);
         }
+
+        // Update lightning bolts
+        if (this.lightningBolts) {
+            this.lightningBolts.forEach(bolt => bolt.update(deltaTime));
+            this.lightningBolts = this.lightningBolts.filter(bolt => bolt.alive);
+        }
     }
     
     shoot(vx = 0, vy = -10) {
@@ -181,12 +190,18 @@ export class Player extends Entity {
         if (this.explosiveBullets) {
             this.explosiveBullets.forEach(bullet => bullet.render(ctx));
         }
+
+        // Render lightning bolts
+        if (this.lightningBolts) {
+            this.lightningBolts.forEach(bolt => bolt.render(ctx));
+        }
     }
     
     getBullets() {
         const allBullets = [...this.bullets];
         if (this.missiles) allBullets.push(...this.missiles);
         if (this.explosiveBullets) allBullets.push(...this.explosiveBullets);
+        if (this.lightningBolts) allBullets.push(...this.lightningBolts);
         return allBullets;
     }
     

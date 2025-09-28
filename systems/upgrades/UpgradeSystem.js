@@ -1,7 +1,7 @@
 import { UpgradeRegistry } from './UpgradeRegistry.js';
 import { UpgradeGenerator } from './UpgradeGenerator.js';
 import { BaseUpgrade } from './base/BaseUpgrade.js';
-import { HomingMissileUpgrade, ExplosiveRoundsUpgrade } from './weapons/index.js';
+import { HomingMissileUpgrade, ExplosiveRoundsUpgrade, LightningWeaponUpgrade } from './weapons/index.js';
 
 export class UpgradeSystem {
     constructor() {
@@ -120,6 +120,7 @@ export class UpgradeSystem {
         // Register weapon upgrade modules
         this.registry.register(new HomingMissileUpgrade());
         this.registry.register(new ExplosiveRoundsUpgrade());
+        this.registry.register(new LightningWeaponUpgrade());
         
         // Register templates for procedural generation
         this.generator.registerTemplate('homing_missile', {
