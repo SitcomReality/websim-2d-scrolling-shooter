@@ -8,6 +8,9 @@ import { PowerUpSystem } from '../systems/PowerUpSystem.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { UIManager } from './UIManager.js';
 import { GameState } from './GameState.js';
+import { GameLoopManager } from './GameLoopManager.js';
+import { SidePanelManager } from './SidePanelManager.js';
+import { LevelUpManager } from './LevelUpManager.js';
 
 export class Game {
     constructor() {
@@ -25,7 +28,9 @@ export class Game {
         this.powerUpSystem = new PowerUpSystem();
         this.upgradeSystem = new UpgradeSystem();
         
-        this.lastTime = 0;
+        this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
+        this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
+        this.gameLoopManager = new GameLoopManager(this);
         
         this.bindEvents();
     }
@@ -33,11 +38,11 @@ export class Game {
     bindEvents() {
         this.uiManager.on('start', () => this.startGame());
         this.uiManager.on('restart', () => this.restartGame());
-        this.uiManager.on('continue', () => this.continueAfterLevelUp());
-        this.uiManager.on('upgradeSelected', (index) => this.handleUpgradeSelection(index));
+        this.uiManager.on('continue', () => this.levelUpManager.continueAfterLevelUp());
+        this.uiManager.on('upgradeSelected', (index) => this.levelUpManager.handleUpgradeSelection(index));
         
         // Update side panels
-        this.updateSidePanels();
+        this.sidePanelManager.updateSidePanels();
     }
     
     startGame() {
@@ -45,8 +50,8 @@ export class Game {
         this.gameState.isRunning = true;
         this.uiManager.hideStartButton();
         this.resetGame();
-        this.updateSidePanels();
-        this.gameLoop();
+        this.sidePanelManager.updateSidePanels();
+        this.gameLoopManager.start();
     }
     
     restartGame() {
@@ -54,8 +59,8 @@ export class Game {
         this.gameState.isRunning = true;
         this.uiManager.hideRestartButton();
         this.resetGame();
-        this.updateSidePanels();
-        this.gameLoop();
+        this.sidePanelManager.updateSidePanels();
+        this.gameLoopManager.start();
     }
     
     resetGame() {
@@ -64,113 +69,6 @@ export class Game {
         this.particleSystem.particles = [];
         this.powerUpSystem.powerUps = [];
         this.upgradeSystem.playerUpgrades.clear();
-    }
-    
-    continueAfterLevelUp() {
-        this.gameState.isPausedForLevelUp = false;
-        this.gameState.levelUpDelayTimer = 0;
-        this.uiManager.hideLevelUp();
-        
-        const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
-            this.gameState.level,
-            this.upgradeSystem.playerUpgrades
-        );
-        
-        this.gameState.isPausedForLevelUp = true;
-        this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
-        
-        // Update enemy unlocks for the new level before updating panels
-        this.enemySpawner.unlockEnemyTypes(this.gameState.level);
-        this.updateSidePanels();
-    }
-    
-    handleUpgradeSelection(index) {
-        const choices = this.uiManager.upgradeChoices;
-        if (choices[index]) {
-            this.upgradeSystem.applyUpgrade(choices[index], this.player);
-            this.uiManager.hideUpgradeSelection();
-            this.gameState.isPausedForLevelUp = false;
-            this.updateSidePanels();
-        }
-    }
-    
-    updateSidePanels() {
-        // Update ship stats panel
-        const statsList = document.getElementById('ship-stats-list');
-        if (statsList) {
-            statsList.innerHTML = '';
-            
-            const stats = [
-                { name: 'Speed', value: this.player.speed?.toFixed(1) || '5.0', unit: '' },
-                { name: 'Fire Rate', value: Math.round(1000 / (this.player.fireRate || 150)), unit: '/sec' },
-                { name: 'Damage', value: this.player.damage || 1, unit: '' },
-                { name: 'Max Health', value: this.player.maxHealth || 100, unit: 'HP' },
-                { name: 'Health Drop Chance', value: Math.round((this.player.healthPickupChance || 0.02) * 100), unit: '%' },
-                { name: 'Health Restore', value: this.player.healthPickupAmount || 5, unit: 'HP' }
-            ];
-            
-            stats.forEach(stat => {
-                const item = document.createElement('div');
-                item.className = 'stat-item';
-                item.innerHTML = `
-                    <div class="stat-name">${stat.name}</div>
-                    <div class="stat-value">${stat.value}${stat.unit}</div>
-                `;
-                statsList.appendChild(item);
-            });
-        }
-
-        // Update enemies panel
-        const enemiesList = document.getElementById('unlocked-enemies-list');
-        if (enemiesList) {
-            enemiesList.innerHTML = '';
-            this.enemySpawner.unlockedTypes.forEach(type => {
-                const item = document.createElement('div');
-                item.className = 'enemy-item';
-                
-                let description = '';
-                let color = '#ff9900';
-                
-                switch(type) {
-                    case 'basic':
-                        description = 'Standard enemy';
-                        color = '#ff9900';
-                        break;
-                    case 'fast':
-                        description = 'Quick and agile';
-                        color = '#ff6666';
-                        break;
-                    case 'zigzag':
-                        description = 'Moves erratically';
-                        color = '#ff00ff';
-                        break;
-                    case 'tank':
-                        description = 'Slow but tough';
-                        color = '#ff0000';
-                        break;
-                }
-                
-                item.innerHTML = `
-                    <div class="enemy-name" style="color: ${color}">${type.toUpperCase()}</div>
-                    <div class="enemy-description">${description}</div>
-                `;
-                enemiesList.appendChild(item);
-            });
-        }
-    }
-    
-    gameLoop(currentTime = 0) {
-        if (!this.gameState.isRunning) return;
-        
-        const deltaTime = currentTime - this.lastTime;
-        this.lastTime = currentTime;
-        
-        if (!this.gameState.isPausedForLevelUp) {
-            this.update(deltaTime);
-            this.render();
-        }
-        
-        requestAnimationFrame((time) => this.gameLoop(time));
     }
     
     update(deltaTime) {
@@ -210,21 +108,7 @@ export class Game {
         
         // Check for level up
         if (this.gameState.xp >= this.gameState.xpToNextLevel) {
-            this.gameState.level++;
-            this.gameState.xp = 0;
-            this.gameState.xpToNextLevel = Math.floor(this.gameState.xpToNextLevel * 1.5);
-            
-            // Go directly to upgrade selection
-            const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
-                this.gameState.level,
-                this.upgradeSystem.playerUpgrades
-            );
-            this.gameState.isPausedForLevelUp = true;
-            this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
-            
-            // Ensure enemy unlocks are applied for the new level immediately
-            this.enemySpawner.unlockEnemyTypes(this.gameState.level);
-            this.updateSidePanels();
+            this.levelUpManager.handleLevelUp();
         }
         
         // Check for damage
@@ -272,15 +156,5 @@ export class Game {
         
         // Render damage text
         this.collisionSystem.getDamageTextSystem().render(this.ctx);
-    }
-    
-    checkPlayerCollision(player) {
-        for (let i = this.powerUps.length - 1; i >= 0; i--) {
-            const powerUp = this.powerUps[i];
-            if (powerUp.intersects(player)) {
-                powerUp.apply(player);
-                this.powerUps.splice(i, 1);
-            }
-        }
     }
 }
