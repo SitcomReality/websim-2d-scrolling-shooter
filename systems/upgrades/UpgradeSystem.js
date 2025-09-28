@@ -170,13 +170,13 @@ export class UpgradeSystem {
         });
     }
 
-    generateUpgradeChoices(playerState, count = 3) {
+    generateUpgradeChoices(playerState, existingUpgrades, count = 3) {
         const choices = [];
 
         // Get handcrafted upgrades
         const handcrafted = this.registry.getUpgradeChoices(
             playerState,
-            this.playerUpgrades,
+            existingUpgrades,
             Math.floor(count * 0.6)
         );
 
@@ -187,7 +187,7 @@ export class UpgradeSystem {
         for (let i = 0; i < remainingCount; i++) {
             const procedural = this.generator.generateRandomUpgrade(
                 playerState,
-                this.playerUpgrades,
+                existingUpgrades,
                 'complex'
             );
             choices.push(procedural);

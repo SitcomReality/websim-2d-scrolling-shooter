@@ -12,7 +12,7 @@ export class LevelUpManager {
         this.gameState.xp = 0;
         this.gameState.xpToNextLevel = Math.floor(this.gameState.xpToNextLevel * 1.5);
 
-        // Go directly to upgrade selection using the new upgrade system
+        // Generate 4 random upgrade choices using the new upgrade system
         const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
             {
                 level: this.gameState.level,
@@ -20,8 +20,10 @@ export class LevelUpManager {
                 health: this.gameState.health,
                 maxHealth: this.gameState.maxHealth
             },
-            this.upgradeSystem.playerUpgrades
+            this.upgradeSystem.playerUpgrades,
+            4 // Request 4 choices
         );
+        
         this.gameState.isPausedForLevelUp = true;
         this.uiManager.showUpgradeSelection(upgradeChoices, this.upgradeSystem);
 
@@ -34,9 +36,11 @@ export class LevelUpManager {
         this.gameState.levelUpDelayTimer = 0;
         this.uiManager.hideLevelUp();
 
+        // Generate 4 random upgrade choices
         const upgradeChoices = this.upgradeSystem.generateUpgradeChoices(
             this.gameState.level,
-            this.upgradeSystem.playerUpgrades
+            this.upgradeSystem.playerUpgrades,
+            4
         );
 
         this.gameState.isPausedForLevelUp = true;
