@@ -1,4 +1,4 @@
-import { BaseUpgrade } from './BaseUpgrade.js';
+import { BaseUpgrade } from './base/BaseUpgrade.js';
 
 export class ProceduralUpgrade extends BaseUpgrade {
     constructor(config = {}) {
