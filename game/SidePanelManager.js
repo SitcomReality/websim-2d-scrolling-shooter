@@ -24,20 +24,6 @@ export class SidePanelManager {
             { name: 'Health Restore', value: this.player.healthPickupAmount || 5, unit: 'HP' }
         ];
 
-        // Add active weapon upgrades
-        if (this.player.weaponModifiers) {
-            Object.entries(this.player.weaponModifiers).forEach(([key, mod]) => {
-                if (mod && mod.enabled) {
-                    const weaponName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                    stats.push({ 
-                        name: weaponName, 
-                        value: 'Active', 
-                        unit: '' 
-                    });
-                }
-            });
-        }
-
         stats.forEach(stat => {
             const item = document.createElement('div');
             item.className = 'stat-item';

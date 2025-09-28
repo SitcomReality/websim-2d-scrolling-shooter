@@ -1,21 +1,16 @@
 import { Entity } from './Entity.js';
 import { Bullet } from './Bullet.js';
-import { HomingMissile } from '../systems/upgrades/weapons/HomingMissileUpgrade.js';
-import { ExplosiveBullet } from '../systems/upgrades/weapons/ExplosiveRoundsUpgrade.js';
 
 export class Player extends Entity {
     constructor(x, y) {
         super(x, y, 40, 40);
         this.speed = 5;
         this.bullets = [];
-        this.missiles = [];
-        this.explosiveBullets = [];
         this.fireRate = 150; // milliseconds
         this.lastFireTime = 0;
         this.color = '#00ffff';
         this.damage = 1;
         this.invulnerable = false;
-        this.weaponModifiers = {};
         
         // Burst fire system
         this.isCharging = false;
@@ -23,9 +18,6 @@ export class Player extends Entity {
         this.maxChargeTime = 5000; // 5 seconds
         this.chargedBullets = 0;
         this.chargeRate = 1; // bullets per fireRate interval
-        
-        // Lightning bolts
-        this.lightningBolts = [];
     }
     
     update(deltaTime, inputState) {
@@ -81,38 +73,9 @@ export class Player extends Entity {
             }
         }
         
-        // Always update bullets, missiles, and explosive bullets
+        // Always update bullets
         this.bullets.forEach(bullet => bullet.update(deltaTime));
         this.bullets = this.bullets.filter(bullet => bullet.alive);
-        
-        if (this.missiles) {
-            this.missiles.forEach(missile => {
-                const enemies = window.gameInstance?.enemySpawner?.getEnemies() || [];
-                missile.update(deltaTime, enemies);
-                const collision = missile.checkCollision(enemies);
-                if (collision.hit) {
-                    // Create explosion effect
-                    if (window.gameInstance?.particleSystem) {
-                        window.gameInstance.particleSystem.createExplosion(collision.x, collision.y);
-                    }
-                }
-            });
-            this.missiles = this.missiles.filter(missile => missile.alive);
-        }
-        
-        if (this.explosiveBullets) {
-            this.explosiveBullets.forEach(bullet => {
-                const enemies = window.gameInstance?.enemySpawner?.getEnemies() || [];
-                bullet.update(deltaTime, enemies);
-            });
-            this.explosiveBullets = this.explosiveBullets.filter(bullet => bullet.alive);
-        }
-
-        // Update lightning bolts
-        if (this.lightningBolts) {
-            this.lightningBolts.forEach(bolt => bolt.update(deltaTime));
-            this.lightningBolts = this.lightningBolts.filter(bolt => bolt.alive);
-        }
     }
     
     shoot(vx = 0, vy = -10) {
@@ -180,37 +143,16 @@ export class Player extends Entity {
         
         // Render bullets
         this.bullets.forEach(bullet => bullet.render(ctx));
-        
-        // Render missiles
-        if (this.missiles) {
-            this.missiles.forEach(missile => missile.render(ctx));
-        }
-        
-        // Render explosive bullets
-        if (this.explosiveBullets) {
-            this.explosiveBullets.forEach(bullet => bullet.render(ctx));
-        }
-
-        // Render lightning bolts
-        if (this.lightningBolts) {
-            this.lightningBolts.forEach(bolt => bolt.render(ctx));
-        }
     }
     
     getBullets() {
-        const allBullets = [...this.bullets];
-        if (this.missiles) allBullets.push(...this.missiles);
-        if (this.explosiveBullets) allBullets.push(...this.explosiveBullets);
-        if (this.lightningBolts) allBullets.push(...this.lightningBolts);
-        return allBullets;
+        return this.bullets;
     }
     
     reset() {
         this.x = 400;
         this.y = 500;
         this.bullets = [];
-        this.missiles = [];
-        this.explosiveBullets = [];
         this.alive = true;
         this.isCharging = false;
         this.chargedBullets = 0;

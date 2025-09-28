@@ -5,7 +5,7 @@ import { InputHandler } from '../systems/InputHandler.js';
 import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { ParticleSystem } from '../systems/ParticleSystem.js';
 import { PowerUpSystem } from '../systems/PowerUpSystem.js';
-import { UpgradeSystem } from '../systems/upgrades/UpgradeSystem.js';
+import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { UIManager } from './UIManager.js';
 import { GameState } from './GameState.js';
 import { GameLoopManager } from './GameLoopManager.js';
@@ -41,54 +41,8 @@ export class Game {
         this.uiManager.on('continue', () => this.levelUpManager.continueAfterLevelUp());
         this.uiManager.on('upgradeSelected', (index) => this.levelUpManager.handleUpgradeSelection(index));
         
-        // Add dev panel events
-        this.uiManager.on('devLevelUp', () => this.handleDevLevelUp());
-        this.uiManager.on('devMaxHealth', () => this.handleDevMaxHealth());
-        this.uiManager.on('devGodMode', () => this.handleDevGodMode());
-        this.uiManager.on('devClearEnemies', () => this.handleDevClearEnemies());
-        
         // Update side panels
         this.sidePanelManager.updateSidePanels();
-    }
-
-    // Dev panel handlers
-    handleDevLevelUp() {
-        // Force level up by setting XP to max
-        this.gameState.xp = this.gameState.xpToNextLevel;
-        this.levelUpManager.handleLevelUp();
-    }
-
-    handleDevMaxHealth() {
-        // Set player health to max
-        this.player.health = this.player.maxHealth || 100;
-        this.gameState.health = this.player.health;
-        this.uiManager.update();
-    }
-
-    handleDevGodMode() {
-        // Toggle invulnerability
-        this.player.invulnerable = !this.player.invulnerable;
-        const btn = document.getElementById('dev-god-mode');
-        if (btn) {
-            btn.textContent = this.player.invulnerable ? 'Disable God Mode' : 'God Mode';
-            btn.style.background = this.player.invulnerable 
-                ? 'linear-gradient(135deg, #00ff00, #00aa00)' 
-                : 'linear-gradient(135deg, #660000, #880000)';
-        }
-    }
-
-    handleDevClearEnemies() {
-        // Clear all enemies
-        this.enemySpawner.enemies = [];
-        if (this.particleSystem) {
-            // Add some particle effects for visual feedback
-            for (let i = 0; i < 50; i++) {
-                this.particleSystem.createExplosion(
-                    Math.random() * this.canvas.width,
-                    Math.random() * this.canvas.height
-                );
-            }
-        }
     }
     
     startGame() {
@@ -119,10 +73,6 @@ export class Game {
     
     update(deltaTime) {
         const inputState = this.inputHandler.getInputState();
-        
-        // Update all weapon systems before player update
-        this.updateWeaponSystems(deltaTime);
-        
         this.player.update(deltaTime, inputState);
         
         // Pass player level to enemy spawner
@@ -192,57 +142,6 @@ export class Game {
         
         // Update damage text system
         this.collisionSystem.getDamageTextSystem().update(deltaTime);
-    }
-    
-    updateWeaponSystems(deltaTime) {
-        // Update homing missiles
-        if (this.player.missiles) {
-            this.player.missiles.forEach(missile => {
-                const enemies = this.enemySpawner.getEnemies();
-                missile.update(deltaTime, enemies);
-                const collision = missile.checkCollision(enemies);
-                if (collision.hit) {
-                    this.particleSystem.createExplosion(collision.x, collision.y);
-                }
-            });
-            this.player.missiles = this.player.missiles.filter(missile => missile.alive);
-        }
-        
-        // Update explosive bullets
-        if (this.player.explosiveBullets) {
-            const enemies = this.enemySpawner.getEnemies();
-            this.player.explosiveBullets.forEach(bullet => {
-                bullet.update(deltaTime, enemies);
-            });
-            this.player.explosiveBullets = this.player.explosiveBullets.filter(bullet => bullet.alive);
-        }
-        
-        // Update piercing bullets
-        if (this.player.piercingBullets) {
-            const enemies = this.enemySpawner.getEnemies();
-            this.player.piercingBullets.forEach(bullet => {
-                bullet.update(deltaTime, enemies);
-            });
-            this.player.piercingBullets = this.player.piercingBullets.filter(bullet => bullet.alive);
-        }
-        
-        // Update laser beams
-        if (this.player.laserBeams) {
-            const enemies = this.enemySpawner.getEnemies();
-            this.player.laserBeams.forEach(beam => {
-                beam.update(deltaTime, enemies);
-            });
-            this.player.laserBeams = this.player.laserBeams.filter(beam => beam.alive);
-        }
-        
-        // Update lightning bolts
-        if (this.player.lightningBolts) {
-            const enemies = this.enemySpawner.getEnemies();
-            this.player.lightningBolts.forEach(bolt => {
-                bolt.update(deltaTime, enemies);
-            });
-            this.player.lightningBolts = this.player.lightningBolts.filter(bolt => bolt.alive);
-        }
     }
     
     render() {
