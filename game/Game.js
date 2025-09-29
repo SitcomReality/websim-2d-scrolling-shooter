@@ -18,6 +18,7 @@ import { UtilitySystem } from './systems/UtilitySystem.js';
 import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
 import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
 import { LuckUpgrade } from './upgrades/types/LuckUpgrade.js';
+import { SynergySystem } from './systems/SynergySystem.js';
 
 export class Game {
     constructor() {
@@ -35,6 +36,7 @@ export class Game {
         this.powerUpSystem = new PowerUpSystem();
         this.weaponFactory = new WeaponFactory();
         this.upgradeSystem = new UpgradeSystem(this.weaponFactory);
+        this.synergySystem = new SynergySystem();
         
         this.movementSystem = new MovementSystem();
         this.utilitySystem = new UtilitySystem();
@@ -122,6 +124,7 @@ export class Game {
         this.particleSystem.particles = [];
         this.powerUpSystem.powerUps = [];
         this.upgradeSystem.playerUpgrades.clear();
+        this.synergySystem.reset();
         this.movementSystem.reset();
         this.utilitySystem.reset();
     }
@@ -196,6 +199,9 @@ export class Game {
         
         // Check power-up collisions
         this.powerUpSystem.checkPlayerCollision(this.player);
+        
+        // Check for synergies
+        this.synergySystem.checkSynergies(this.upgradeSystem.playerUpgrades, this.player);
         
         // Update UI with current health values
         this.gameState.health = this.player.health;

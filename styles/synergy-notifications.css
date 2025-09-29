@@ -1,0 +1,114 @@
+/* Synergy notification styles */
+.synergy-notification {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    padding: 20px;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    animation: synergyAppear 0.5s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 300px;
+}
+
+@keyframes synergyAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.synergy-icon {
+    font-size: 48px;
+    animation: synergyPulse 1s ease-in-out infinite;
+}
+
+@keyframes synergyPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.synergy-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px #ffd700;
+}
+
+.synergy-description {
+    font-size: 14px;
+    color: #cccccc;
+}
+
+/* Synergy indicator in UI */
+.synergy-indicator {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ffd700;
+}
+
+.synergy-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.synergy-badge:hover {
+    transform: scale(1.1);
+}
+
+.synergy-tooltip {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.synergy-badge:hover .synergy-tooltip {
+    opacity: 1;
+}
