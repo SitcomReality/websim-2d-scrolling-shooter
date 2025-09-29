@@ -1,3 +1,5 @@
+import { Entity } from '../entities/Entity.js';
+
 export class PowerUpSystem {
     constructor() {
         this.powerUps = [];
@@ -37,8 +39,6 @@ export class PowerUpSystem {
         }
     }
 }
-
-import { Entity } from '../entities/Entity.js';
 
 class HealthPickup extends Entity {
     constructor(x, y, healthAmount = 5) {
