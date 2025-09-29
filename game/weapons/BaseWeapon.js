@@ -31,16 +31,36 @@ export class BaseWeapon {
         const vx = direction.x * this.projectileSpeed;
         const vy = direction.y * this.projectileSpeed;
 
+        // Check for critical hit
+        let finalDamage = damage || this.damage;
+        let finalColor = color || this.projectileColor;
+        
+        if (window.gameInstance && window.gameInstance.player) {
+            const player = window.gameInstance.player;
+            const critChance = player.statsComponent ? 
+                player.statsComponent.getCriticalChance() : 
+                (player.criticalChance || 0.01);
+            const critDamage = player.statsComponent ? 
+                player.statsComponent.getCriticalDamage() : 
+                (player.criticalDamage || 0.5);
+
+            if (Math.random() < critChance) {
+                finalDamage = (damage || this.damage) * (1 + critDamage);
+                finalColor = '#ffff00'; // Yellow for critical hits
+            }
+        }
+
         return {
             x: position.x,
             y: position.y,
             vx: vx,
             vy: vy,
-            damage: damage || this.damage,
-            color: color || this.projectileColor,
+            damage: finalDamage,
+            color: finalColor,
             alive: true,
             width: 4,
-            height: 10
+            height: 10,
+            isCritical: finalColor === '#ffff00'
         };
     }
 

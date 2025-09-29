@@ -7,6 +7,8 @@ import { HealthPickupAmountUpgrade } from './types/HealthPickupAmountUpgrade.js'
 import { MovementUpgrade } from './types/MovementUpgrade.js';
 import { UtilityUpgrade } from './types/UtilityUpgrade.js';
 import { LuckUpgrade } from './types/LuckUpgrade.js';
+import { CriticalChanceUpgrade } from './types/CriticalChanceUpgrade.js';
+import { CriticalDamageUpgrade } from './types/CriticalDamageUpgrade.js';
 import { ProceduralUpgradeSystem } from '../../systems/ProceduralUpgradeSystem.js';
 
 export class UpgradeSystem {
@@ -21,7 +23,9 @@ export class UpgradeSystem {
             new HealthPickupAmountUpgrade(),
             new MovementUpgrade(),
             new UtilityUpgrade(),
-            new LuckUpgrade()
+            new LuckUpgrade(),
+            new CriticalChanceUpgrade(),
+            new CriticalDamageUpgrade()
         ];
 
         this.playerUpgrades = new Map();
@@ -160,7 +164,7 @@ export class UpgradeSystem {
                 valueText = `+${valueAmount} Utility`;
             }
         } else {
-            // Handle regular upgrades (existing code)
+            // Handle regular upgrades
             if (upgrade.name === 'Max Health') {
                 description = 'Increases your maximum health';
                 const healthIncrease = values.health || values[upgrade.id] || values.common;
@@ -193,6 +197,14 @@ export class UpgradeSystem {
                 description = 'Increases the quality of upgrade offerings';
                 const luckIncrease = values.luck || values[upgrade.id] || values.common;
                 valueText = `+${luckIncrease.toFixed(1)} Luck`;
+            } else if (upgrade.name === 'Critical Chance') {
+                description = 'Increases your chance to deal critical damage';
+                const chanceIncrease = values.criticalChance || values[upgrade.id] || values.common;
+                valueText = `+${Math.round(chanceIncrease * 100)}% Critical Chance`;
+            } else if (upgrade.name === 'Critical Damage') {
+                description = 'Increases damage dealt by critical hits';
+                const damageIncrease = values.criticalDamage || values[upgrade.id] || values.common;
+                valueText = `+${Math.round(damageIncrease * 100)}% Critical Damage`;
             }
         }
 

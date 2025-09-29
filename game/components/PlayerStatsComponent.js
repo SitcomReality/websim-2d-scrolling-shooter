@@ -4,7 +4,9 @@ export class PlayerStatsComponent {
             healthPickupChance: 0.02,
             healthPickupAmount: 5,
             invulnerable: false,
-            luck: 1.0 // Base luck value
+            luck: 1.0, // Base luck value
+            criticalChance: 0.01, // 1% base crit chance
+            criticalDamage: 0.5 // +50% damage on crit
         };
     }
     
@@ -38,5 +40,21 @@ export class PlayerStatsComponent {
     
     getLuck() {
         return this.stats.luck;
+    }
+    
+    increaseCriticalChance(amount) {
+        this.stats.criticalChance += amount;
+    }
+    
+    increaseCriticalDamage(amount) {
+        this.stats.criticalDamage += amount;
+    }
+    
+    getCriticalChance() {
+        return this.stats.criticalChance;
+    }
+    
+    getCriticalDamage() {
+        return this.stats.criticalDamage;
     }
 }
