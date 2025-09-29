@@ -29,6 +29,35 @@ export class UIManager extends EventEmitter {
         this.elements.restartBtn.addEventListener('click', () => {
             this.emit('restart');
         });
+        
+        // Dev panel events
+        const levelUpBtn = document.getElementById('level-up-btn');
+        if (levelUpBtn) {
+            levelUpBtn.addEventListener('click', () => {
+                this.emit('devLevelUp');
+            });
+        }
+        
+        const healBtn = document.getElementById('heal-btn');
+        if (healBtn) {
+            healBtn.addEventListener('click', () => {
+                this.emit('devHeal');
+            });
+        }
+        
+        const maxXPBtn = document.getElementById('max-xp-btn');
+        if (maxXPBtn) {
+            maxXPBtn.addEventListener('click', () => {
+                this.emit('devMaxXP');
+            });
+        }
+        
+        const killAllBtn = document.getElementById('kill-all-btn');
+        if (killAllBtn) {
+            killAllBtn.addEventListener('click', () => {
+                this.emit('devKillAll');
+            });
+        }
     }
     
     update() {

@@ -41,8 +41,45 @@ export class Game {
         this.uiManager.on('continue', () => this.levelUpManager.continueAfterLevelUp());
         this.uiManager.on('upgradeSelected', (index) => this.levelUpManager.handleUpgradeSelection(index));
         
+        // Dev panel events
+        this.uiManager.on('devLevelUp', () => this.handleDevLevelUp());
+        this.uiManager.on('devHeal', () => this.handleDevHeal());
+        this.uiManager.on('devMaxXP', () => this.handleDevMaxXP());
+        this.uiManager.on('devKillAll', () => this.handleDevKillAll());
+        
         // Update side panels
         this.sidePanelManager.updateSidePanels();
+    }
+    
+    handleDevLevelUp() {
+        // Force instant level up
+        this.gameState.xp = this.gameState.xpToNextLevel;
+        this.levelUpManager.handleLevelUp();
+    }
+    
+    handleDevHeal() {
+        // Full heal
+        this.gameState.health = this.gameState.maxHealth || 100;
+        this.player.health = this.gameState.health;
+        this.uiManager.update();
+    }
+    
+    handleDevMaxXP() {
+        // Set XP to max for current level
+        this.gameState.xp = this.gameState.xpToNextLevel - 1;
+        this.uiManager.update();
+    }
+    
+    handleDevKillAll() {
+        // Kill all enemies on screen
+        const enemies = this.enemySpawner.getEnemies();
+        enemies.forEach(enemy => {
+            enemy.alive = false;
+            this.gameState.score += enemy.points;
+            this.gameState.xp += enemy.points;
+            this.particleSystem.createExplosion(enemy.x, enemy.y);
+        });
+        this.uiManager.update();
     }
     
     startGame() {
