@@ -9,6 +9,9 @@ import { UtilityUpgrade } from './types/UtilityUpgrade.js';
 import { LuckUpgrade } from './types/LuckUpgrade.js';
 import { CriticalChanceUpgrade } from './types/CriticalChanceUpgrade.js';
 import { CriticalDamageUpgrade } from './types/CriticalDamageUpgrade.js';
+import { PiercingUpgrade } from './types/PiercingUpgrade.js';
+import { ChainUpgrade } from './types/ChainUpgrade.js';
+import { RicochetUpgrade } from './types/RicochetUpgrade.js';
 import { ProceduralUpgradeSystem } from '../../systems/ProceduralUpgradeSystem.js';
 
 export class UpgradeSystem {
@@ -25,7 +28,10 @@ export class UpgradeSystem {
             new UtilityUpgrade(),
             new LuckUpgrade(),
             new CriticalChanceUpgrade(),
-            new CriticalDamageUpgrade()
+            new CriticalDamageUpgrade(),
+            new PiercingUpgrade(),
+            new ChainUpgrade(),
+            new RicochetUpgrade()
         ];
 
         this.playerUpgrades = new Map();
@@ -205,6 +211,18 @@ export class UpgradeSystem {
                 description = 'Increases damage dealt by critical hits';
                 const damageIncrease = values.criticalDamage || values[upgrade.id] || values.common;
                 valueText = `+${Math.round(damageIncrease * 100)}% Critical Damage`;
+            } else if (upgrade.name === 'Piercing') {
+                description = 'Bullets pierce through enemies';
+                const piercingCount = values.piercing || values[upgrade.id] || values.common;
+                valueText = `Pierces ${piercingCount} additional enemies`;
+            } else if (upgrade.name === 'Chain Lightning') {
+                description = 'Bullets chain to nearby enemies';
+                const chainData = values.chain || values[upgrade.id] || values.common;
+                valueText = `Chains ${chainData.chains} times within ${chainData.range}px`;
+            } else if (upgrade.name === 'Ricochet') {
+                description = 'Bullets bounce off walls';
+                const ricochetCount = values.ricochet || values[upgrade.id] || values.common;
+                valueText = `Ricochets ${ricochetCount} times off walls`;
             }
         }
 

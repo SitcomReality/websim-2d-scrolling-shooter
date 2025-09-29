@@ -17,26 +17,41 @@ export class CollisionSystem {
             for (let j = enemies.length - 1; j >= 0; j--) {
                 const enemy = enemies[j];
                 if (bullet.intersects(enemy)) {
-                    bullet.alive = false;
                     const damage = bullet.damage || 1;
+                    
+                    // Handle piercing
+                    if (bullet.piercing > 0) {
+                        if (!bullet.hitTargets) bullet.hitTargets = [];
+                        if (bullet.hitTargets.includes(enemy)) continue;
+                        bullet.hitTargets.push(enemy);
+                        bullet.piercing--;
+                    } else {
+                        bullet.alive = false;
+                    }
+                    
                     if (enemy.takeDamage(damage)) {
-                        // Immediately remove the enemy from the array
                         enemies.splice(j, 1);
                         this.scoreGained += enemy.points;
+                        this.gameState.xp += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
                         
-                        // Show XP text
-                        const xpAmount = enemy.points; // XP equals enemy points
+                        const xpAmount = enemy.points;
                         this.damageTextSystem.addXP(enemy.x, enemy.y + 20, xpAmount);
                         
-                        // Use player's adjusted chance for health pickup
                         const dropChance = player.healthPickupChance || 0.02;
                         if (Math.random() < dropChance) {
                             powerUpSystem.spawnHealthPickup(enemy.x, enemy.y);
                         }
                     }
+                    
                     this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, 'physical');
-                    break;
+                    
+                    // Handle chaining
+                    if (bullet.chain > 0 && bullet.remainingChains > 0) {
+                        this.handleChaining(bullet, enemy, enemies, playerBullets);
+                    }
+                    
+                    if (bullet.piercing <= 0 && bullet.chain <= 0) break;
                 }
             }
         }
@@ -47,7 +62,7 @@ export class CollisionSystem {
             if (player.intersects(enemy) && !player.invulnerable) {
                 const damage = 20;
                 this.damageTaken += damage;
-                enemies.splice(i, 1); // Immediately remove the enemy
+                enemies.splice(i, 1);
                 particleSystem.createExplosion(enemy.x, enemy.y);
                 this.damageTextSystem.addDamage(player.x, player.y, damage, 'physical');
             }
@@ -68,6 +83,50 @@ export class CollisionSystem {
                 }
             }
         });
+    }
+    
+    handleChaining(bullet, hitEnemy, enemies, playerBullets) {
+        bullet.remainingChains--;
+        
+        const nearbyEnemies = enemies.filter(enemy => {
+            if (enemy === hitEnemy || (bullet.hitTargets && bullet.hitTargets.includes(enemy))) {
+                return false;
+            }
+            
+            const dx = enemy.x - hitEnemy.x;
+            const dy = enemy.y - hitEnemy.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            return distance <= bullet.chainRange;
+        });
+        
+        if (nearbyEnemies.length > 0) {
+            const target = nearbyEnemies[0];
+            const chainDamage = bullet.damage * bullet.chainDamageReduction;
+            
+            if (enemy.takeDamage(chainDamage)) {
+                const enemyIndex = enemies.indexOf(target);
+                if (enemyIndex > -1) {
+                    enemies.splice(enemyIndex, 1);
+                    this.scoreGained += target.points;
+                    this.gameState.xp += target.points;
+                    particleSystem.createExplosion(target.x, target.y);
+                    
+                    const xpAmount = target.points;
+                    this.damageTextSystem.addXP(target.x, target.y + 20, xpAmount);
+                }
+            }
+            
+            this.damageTextSystem.addDamage(target.x, target.y, chainDamage, 'electric');
+            
+            if (!bullet.hitTargets) bullet.hitTargets = [];
+            bullet.hitTargets.push(target);
+            
+            // Recursive chaining
+            if (bullet.remainingChains > 0) {
+                this.handleChaining(bullet, target, enemies, playerBullets);
+            }
+        }
     }
     
     getScoreGained() {

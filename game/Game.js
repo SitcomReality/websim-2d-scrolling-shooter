@@ -50,6 +50,9 @@ export class Game {
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
         this.gameLoopManager = new GameLoopManager(this);
         
+        // Make game instance globally available for weapon systems
+        window.gameInstance = this;
+        
         this.bindEvents();
     }
     
@@ -146,6 +149,7 @@ export class Game {
         this.powerUpSystem.update(deltaTime);
         
         // Update collision system
+        this.collisionSystem.gameState = this.gameState;
         this.collisionSystem.checkCollisions(
             this.player,
             this.enemySpawner.getEnemies(),

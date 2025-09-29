@@ -7,6 +7,12 @@ export class BaseWeapon {
         this.projectileColor = config.projectileColor || '#00ffff';
         this.lastFireTime = 0;
         this.bullets = [];
+        this.piercing = config.piercing || 0;
+        this.chain = config.chain || 0;
+        this.chainRange = config.chainRange || 100;
+        this.chainDamageReduction = config.chainDamageReduction || 0.7;
+        this.penetration = config.penetration || 0;
+        this.ricochet = config.ricochet || 0;
     }
 
     canFire(currentTime) {
@@ -23,7 +29,6 @@ export class BaseWeapon {
     }
 
     createProjectiles(position, targetDirection) {
-        // Override in subclasses for specific firing patterns
         return [this.createProjectile(position, targetDirection)];
     }
 
@@ -31,7 +36,6 @@ export class BaseWeapon {
         const vx = direction.x * this.projectileSpeed;
         const vy = direction.y * this.projectileSpeed;
 
-        // Check for critical hit
         let finalDamage = damage || this.damage;
         let finalColor = color || this.projectileColor;
         
@@ -46,7 +50,7 @@ export class BaseWeapon {
 
             if (Math.random() < critChance) {
                 finalDamage = (damage || this.damage) * (1 + critDamage);
-                finalColor = '#ffff00'; // Yellow for critical hits
+                finalColor = '#ffff00';
             }
         }
 
@@ -60,7 +64,16 @@ export class BaseWeapon {
             alive: true,
             width: 4,
             height: 10,
-            isCritical: finalColor === '#ffff00'
+            isCritical: finalColor === '#ffff00',
+            piercing: this.piercing,
+            chain: this.chain,
+            chainRange: this.chainRange,
+            chainDamageReduction: this.chainDamageReduction,
+            penetration: this.penetration,
+            ricochet: this.ricochet,
+            hitTargets: [],
+            remainingChains: this.chain,
+            remainingRicochets: this.ricochet
         };
     }
 
@@ -68,6 +81,23 @@ export class BaseWeapon {
         this.bullets.forEach(bullet => {
             bullet.x += bullet.vx;
             bullet.y += bullet.vy;
+
+            // Handle ricochet
+            if (bullet.ricochet > 0 && bullet.remainingRicochets > 0) {
+                if (bullet.x < 0 || bullet.x > 800 || bullet.y < 0 || bullet.y > 600) {
+                    bullet.remainingRicochets--;
+                    
+                    // Reverse direction based on which edge was hit
+                    if (bullet.x < 0 || bullet.x > 800) {
+                        bullet.vx = -bullet.vx;
+                        bullet.x = bullet.x < 0 ? 0 : 800;
+                    }
+                    if (bullet.y < 0 || bullet.y > 600) {
+                        bullet.vy = -bullet.vy;
+                        bullet.y = bullet.y < 0 ? 0 : 600;
+                    }
+                }
+            }
 
             // Remove bullets that go off screen
             if (bullet.x < -10 || bullet.x > 810 || bullet.y < -10 || bullet.y > 610) {
@@ -103,5 +133,23 @@ export class BaseWeapon {
 
     setFireRateMultiplier(multiplier) {
         this.fireRate = this.fireRate * multiplier;
+    }
+
+    setPiercing(count) {
+        this.piercing = count;
+    }
+
+    setChain(count, range = 100, damageReduction = 0.7) {
+        this.chain = count;
+        this.chainRange = range;
+        this.chainDamageReduction = damageReduction;
+    }
+
+    setPenetration(count) {
+        this.penetration = count;
+    }
+
+    setRicochet(count) {
+        this.ricochet = count;
     }
 }
