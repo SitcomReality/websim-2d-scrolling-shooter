@@ -11,7 +11,15 @@ export class BaseUpgrade {
     }
     
     canBeOffered(playerState, upgradeState) {
-        const currentLevel = upgradeState.getUpgradeLevel(this.id);
+        // Handle both UpgradeState instances and plain Maps
+        let currentLevel;
+        if (upgradeState && typeof upgradeState.getUpgradeLevel === 'function') {
+            currentLevel = upgradeState.getUpgradeLevel(this.id);
+        } else if (upgradeState instanceof Map) {
+            currentLevel = upgradeState.get(this.id)?.count || 0;
+        } else {
+            currentLevel = 0;
+        }
         return currentLevel < this.maxLevel;
     }
     
