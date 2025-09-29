@@ -13,6 +13,10 @@ import { SidePanelManager } from './SidePanelManager.js';
 import { LevelUpManager } from './LevelUpManager.js';
 import { WeaponFactory } from './weapons/WeaponFactory.js';
 import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
+import { MovementSystem } from './systems/MovementSystem.js';
+import { UtilitySystem } from './systems/UtilitySystem.js';
+import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
+import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
 
 export class Game {
     constructor() {
@@ -30,6 +34,13 @@ export class Game {
         this.powerUpSystem = new PowerUpSystem();
         this.weaponFactory = new WeaponFactory();
         this.upgradeSystem = new UpgradeSystem(this.weaponFactory);
+        
+        this.movementSystem = new MovementSystem();
+        this.utilitySystem = new UtilitySystem();
+        
+        // Update upgrade system to include new upgrades
+        this.upgradeSystem.availableUpgrades.push(new MovementUpgrade());
+        this.upgradeSystem.availableUpgrades.push(new UtilityUpgrade());
         
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
@@ -109,10 +120,19 @@ export class Game {
         this.particleSystem.particles = [];
         this.powerUpSystem.powerUps = [];
         this.upgradeSystem.playerUpgrades.clear();
+        this.movementSystem.reset();
+        this.utilitySystem.reset();
     }
     
     update(deltaTime) {
         const inputState = this.inputHandler.getInputState();
+        
+        // Update movement system
+        this.movementSystem.update(deltaTime, inputState);
+        
+        // Update utility system
+        this.utilitySystem.update(deltaTime);
+        
         this.player.update(deltaTime, inputState);
         
         // Pass player level to enemy spawner
