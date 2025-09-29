@@ -19,7 +19,7 @@ export class PowerUpSystem {
     }
     
     spawnHealthPickup(x, y) {
-        const healthAmount = 5; // Fixed amount
+        const healthAmount = this.player?.healthPickupAmount || 5;
         this.powerUps.push(new HealthPickup(x, y, healthAmount));
     }
     
@@ -77,8 +77,13 @@ class HealthPickup extends Entity {
     }
     
     apply(player) {
-        const maxHealth = 100; // Default max health
-        const healthAmount = this.value;
-        player.health = Math.min(player.health + healthAmount, maxHealth);
+        const maxHealth = player.maxHealth || 100
+        const healthAmount = player.healthPickupAmount || this.value
+        player.health = Math.min(player.health + healthAmount, maxHealth)
+        
+        // Update game state health to match player
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.health = player.health
+        }
     }
 }
