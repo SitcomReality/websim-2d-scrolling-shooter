@@ -1,84 +1,65 @@
 import { Bullet } from '../entities/Bullet.js';
 
 export class WeaponComponent {
-    constructor(fireRate = 150, damage = 1) {
-        this.baseFireRate = fireRate;
-        this.currentFireRate = fireRate;
-        this.damage = damage;
-        this.bullets = [];
-        this.lastFireTime = 0;
-
-        // Burst fire system
-        this.isCharging = false;
-        this.chargeStartTime = 0;
-        this.maxChargeTime = 5000;
-        this.chargedBullets = 0;
-        this.chargeRate = 1;
+    constructor(weaponFactory, weaponType = 'single', config = {}) {
+        this.weaponFactory = weaponFactory;
+        this.currentWeapon = this.weaponFactory.createWeapon(weaponType, config);
+        this.weaponType = weaponType;
     }
 
     update(deltaTime, inputState, position) {
-        if (inputState.shoot) {
-            if (!this.isCharging) {
-                this.isCharging = true;
-                this.chargeStartTime = Date.now();
-                this.chargedBullets = 0;
-            }
-
-            if (Date.now() - this.lastFireTime > this.currentFireRate) {
-                this.chargedBullets += this.chargeRate;
-                this.lastFireTime = Date.now();
-            }
-
-            if (Date.now() - this.chargeStartTime >= this.maxChargeTime) {
-                this.releaseBurst(position);
-            }
-        } else {
-            if (this.isCharging && this.chargedBullets > 0) {
-                this.releaseBurst(position);
-            } else if (!this.isCharging) {
-                if (Date.now() - this.lastFireTime > this.currentFireRate) {
-                    this.shoot(position);
-                    this.lastFireTime = Date.now();
-                }
-            }
-            this.isCharging = false;
+        if (inputState.shoot && this.currentWeapon) {
+            this.currentWeapon.fire(position);
         }
 
-        this.bullets.forEach(bullet => bullet.update(deltaTime));
-        this.bullets = this.bullets.filter(bullet => bullet.alive);
-    }
-
-    shoot(position, vx = 0, vy = -10) {
-        const bullet = new Bullet(position.x, position.y - 20, vx, vy, '#00ffff', this.damage);
-        this.bullets.push(bullet);
-    }
-
-    releaseBurst(position) {
-        const numBullets = this.chargedBullets;
-        for (let i = 0; i < numBullets; i++) {
-            const angle = (Math.random() - 0.5) * Math.PI;
-            const speed = 10;
-            const vx = Math.sin(angle) * speed;
-            const vy = -Math.cos(angle) * speed;
-            this.shoot(position, vx, vy);
+        if (this.currentWeapon) {
+            this.currentWeapon.update(deltaTime);
         }
-        this.chargedBullets = 0;
-        this.isCharging = false;
+    }
+
+    switchWeapon(weaponType, config = {}) {
+        if (this.currentWeapon) {
+            // Preserve some stats from current weapon
+            const currentDamage = this.currentWeapon.damage;
+            const currentFireRate = this.currentWeapon.fireRate;
+            
+            this.currentWeapon = this.weaponFactory.createWeapon(weaponType, {
+                damage: currentDamage,
+                fireRate: currentFireRate,
+                ...config
+            });
+            
+            this.weaponType = weaponType;
+        }
     }
 
     increaseDamage(amount) {
-        this.damage += amount;
+        if (this.currentWeapon) {
+            this.currentWeapon.increaseDamage(amount);
+        }
     }
 
     setFireRateMultiplier(multiplier) {
-        this.currentFireRate = this.baseFireRate * multiplier;
+        if (this.currentWeapon) {
+            this.currentWeapon.setFireRateMultiplier(multiplier);
+        }
     }
 
     getBullets() {
-        return this.bullets;
+        return this.currentWeapon ? this.currentWeapon.getBullets() : [];
     }
 
     clearBullets() {
-        this.bullets = [];
+        if (this.currentWeapon) {
+            this.currentWeapon.clearBullets();
+        }
+    }
+
+    getCurrentWeaponType() {
+        return this.weaponType;
+    }
+
+    getCurrentWeapon() {
+        return this.currentWeapon;
     }
 }

@@ -11,6 +11,8 @@ import { GameState } from './GameState.js';
 import { GameLoopManager } from './GameLoopManager.js';
 import { SidePanelManager } from './SidePanelManager.js';
 import { LevelUpManager } from './LevelUpManager.js';
+import { WeaponFactory } from './weapons/WeaponFactory.js';
+import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
 
 export class Game {
     constructor() {
@@ -26,7 +28,8 @@ export class Game {
         this.collisionSystem = new CollisionSystem();
         this.particleSystem = new ParticleSystem();
         this.powerUpSystem = new PowerUpSystem();
-        this.upgradeSystem = new UpgradeSystem();
+        this.weaponFactory = new WeaponFactory();
+        this.upgradeSystem = new UpgradeSystem(this.weaponFactory);
         
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
@@ -193,5 +196,11 @@ export class Game {
         
         // Render damage text
         this.collisionSystem.getDamageTextSystem().render(this.ctx);
+    }
+    
+    switchPlayerWeapon(weaponType) {
+        if (this.player && this.player.weaponComponent) {
+            this.player.weaponComponent.switchWeapon(weaponType);
+        }
     }
 }
