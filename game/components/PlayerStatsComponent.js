@@ -3,7 +3,8 @@ export class PlayerStatsComponent {
         this.stats = {
             healthPickupChance: 0.02,
             healthPickupAmount: 5,
-            invulnerable: false
+            invulnerable: false,
+            luck: 1.0 // Base luck value
         };
     }
     
@@ -30,5 +31,12 @@ export class PlayerStatsComponent {
     isInvulnerable() {
         return this.stats.invulnerable;
     }
+    
+    increaseLuck(amount) {
+        this.stats.luck += amount;
+    }
+    
+    getLuck() {
+        return this.stats.luck;
+    }
 }
-

@@ -17,6 +17,7 @@ import { MovementSystem } from './systems/MovementSystem.js';
 import { UtilitySystem } from './systems/UtilitySystem.js';
 import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
 import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
+import { LuckUpgrade } from './upgrades/types/LuckUpgrade.js';
 
 export class Game {
     constructor() {
@@ -41,6 +42,7 @@ export class Game {
         // Update upgrade system to include new upgrades
         this.upgradeSystem.availableUpgrades.push(new MovementUpgrade());
         this.upgradeSystem.availableUpgrades.push(new UtilityUpgrade());
+        this.upgradeSystem.availableUpgrades.push(new LuckUpgrade());
         
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);

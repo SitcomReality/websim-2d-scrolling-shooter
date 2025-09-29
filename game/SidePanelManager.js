@@ -21,7 +21,8 @@ export class SidePanelManager {
             { name: 'Damage', value: this.player.damage || 1, unit: '' },
             { name: 'Max Health', value: this.player.maxHealth || 100, unit: 'HP' },
             { name: 'Health Drop Chance', value: Math.round((this.player.healthPickupChance || 0.02) * 100), unit: '%' },
-            { name: 'Health Restore', value: this.player.healthPickupAmount || 5, unit: 'HP' }
+            { name: 'Health Restore', value: this.player.healthPickupAmount || 5, unit: 'HP' },
+            { name: 'Luck', value: this.player.luck?.toFixed(1) || '1.0', unit: '' }
         ];
 
         stats.forEach(stat => {

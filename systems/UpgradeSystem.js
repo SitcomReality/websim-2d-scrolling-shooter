@@ -18,13 +18,13 @@ export class UpgradeSystem {
         };
     }
     
-    generateUpgradeChoices(level, playerUpgrades) {
+    generateUpgradeChoices(level, playerUpgrades, luck = 1.0) {
         const choices = [];
         const available = this.getAvailableUpgrades(level, playerUpgrades);
         
         for (let i = 0; i < Math.min(4, available.length); i++) {
             const upgrade = available[Math.floor(Math.random() * available.length)];
-            const rarity = this.rollRarity();
+            const rarity = this.rollRarityWithLuck(luck);
             const values = upgrade.getValues(rarity);
             choices.push({
                 upgrade: upgrade,
@@ -36,22 +36,37 @@ export class UpgradeSystem {
         return choices;
     }
     
-    getAvailableUpgrades(level, playerUpgrades) {
-        return this.availableUpgrades.filter(upgrade => 
-            upgrade.canBeOffered(level, playerUpgrades)
-        );
-    }
-    
-    rollRarity() {
-        const total = Object.values(this.rarityWeights).reduce((a, b) => a + b, 0);
+    rollRarityWithLuck(luck) {
+        // Apply luck modifier to rarity weights
+        const modifiedWeights = {
+            common: Math.max(10, this.rarityWeights.common - (luck - 1) * 15),
+            uncommon: Math.min(40, this.rarityWeights.uncommon + (luck - 1) * 8),
+            rare: Math.min(25, this.rarityWeights.rare + (luck - 1) * 4),
+            legendary: Math.min(25, this.rarityWeights.legendary + (luck - 1) * 3)
+        };
+        
+        // Normalize weights to ensure they sum to 100
+        const total = Object.values(modifiedWeights).reduce((a, b) => a + b, 0);
+        const normalizedWeights = {};
+        for (const [rarity, weight] of Object.entries(modifiedWeights)) {
+            normalizedWeights[rarity] = (weight / total) * 100;
+        }
+        
+        const total = Object.values(normalizedWeights).reduce((a, b) => a + b, 0);
         const roll = Math.random() * total;
         
         let cumulative = 0;
-        for (const [rarity, weight] of Object.entries(this.rarityWeights)) {
+        for (const [rarity, weight] of Object.entries(normalizedWeights)) {
             cumulative += weight;
             if (roll <= cumulative) return rarity;
         }
         return 'common';
+    }
+    
+    getAvailableUpgrades(level, playerUpgrades) {
+        return this.availableUpgrades.filter(upgrade => 
+            upgrade.canBeOffered(level, playerUpgrades)
+        );
     }
     
     applyUpgrade(upgradeChoice, player) {

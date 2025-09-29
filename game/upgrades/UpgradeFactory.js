@@ -4,6 +4,7 @@ import { SpeedUpgrade } from './types/SpeedUpgrade.js';
 import { FireRateUpgrade } from './types/FireRateUpgrade.js';
 import { HealthPickupChanceUpgrade } from './types/HealthPickupChanceUpgrade.js';
 import { HealthPickupAmountUpgrade } from './types/HealthPickupAmountUpgrade.js';
+import { LuckUpgrade } from './types/LuckUpgrade.js';
 
 export class UpgradeFactory {
     static createUpgrade(type, config = {}) {
@@ -20,6 +21,8 @@ export class UpgradeFactory {
                 return new HealthPickupChanceUpgrade(config);
             case 'healthPickupAmount':
                 return new HealthPickupAmountUpgrade(config);
+            case 'luck':
+                return new LuckUpgrade(config);
             default:
                 throw new Error(`Unknown upgrade type: ${type}`);
         }
