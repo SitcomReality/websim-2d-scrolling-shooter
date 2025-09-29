@@ -1,93 +1,144 @@
-import { Entity } from '../../entities/Entity.js';
-import { HealthComponent } from '../player/components/HealthComponent.js';
-import { WeaponComponent } from '../player/components/WeaponComponent.js';
-import { MovementComponent } from '../player/components/MovementComponent.js';
-import { BurstFireComponent } from '../player/components/BurstFireComponent.js';
+import { Entity } from './Entity.js';
+import { HealthComponent } from '../components/HealthComponent.js';
+import { MovementComponent } from '../components/MovementComponent.js';
+import { WeaponComponent } from '../components/WeaponComponent.js';
+import { PlayerStatsComponent } from '../components/PlayerStatsComponent.js';
 
 export class Player extends Entity {
     constructor(x, y) {
         super(x, y, 40, 40);
-        this.color = '#00ffff';
-        this.invulnerable = false;
 
         // Initialize components
-        this.healthComponent = new HealthComponent(this, 100);
-        this.weaponComponent = new WeaponComponent(this);
-        this.movementComponent = new MovementComponent(this);
-        this.burstFireComponent = new BurstFireComponent(this);
+        this.healthComponent = new HealthComponent(100);
+        this.movementComponent = new MovementComponent(5);
+        this.weaponComponent = new WeaponComponent(150, 1);
+        this.statsComponent = new PlayerStatsComponent();
 
-        // Reference components for easy access
-        this.health = this.healthComponent.currentHealth;
-        this.maxHealth = this.healthComponent.maxHealth;
-        this.damage = this.weaponComponent.damage;
-        this.fireRate = this.weaponComponent.fireRate;
-        this.speed = this.movementComponent.speed;
-        this.healthPickupChance = 0.02;
-        this.healthPickupAmount = 5;
+        // Set initial position
+        this.movementComponent.setPosition(x, y);
+
+        // Visual properties
+        this.color = '#00ffff';
     }
 
     update(deltaTime, inputState) {
-        if (!this.invulnerable) {
-            // Update movement
+        if (!this.statsComponent.isInvulnerable()) {
             this.movementComponent.update(deltaTime, inputState);
-
-            // Handle weapon firing
-            if (inputState.shoot) {
-                this.burstFireComponent.startCharging();
-            } else {
-                if (this.burstFireComponent.isCharging && this.burstFireComponent.chargedBullets > 0) {
-                    this.burstFireComponent.releaseBurst();
-                } else if (!this.burstFireComponent.isCharging) {
-                    // Normal continuous firing
-                    if (this.weaponComponent.canFire()) {
-                        this.weaponComponent.fire(this.x, this.y);
-                    }
-                }
-                this.burstFireComponent.stopCharging();
-            }
-
-            // Update components
-            this.weaponComponent.update(deltaTime);
-            this.burstFireComponent.update(deltaTime);
+            this.weaponComponent.update(deltaTime, inputState, this.movementComponent.position);
         }
 
-        // Sync health values
-        this.health = this.healthComponent.currentHealth;
-        this.maxHealth = this.healthComponent.maxHealth;
+        // Always update bullets
+        this.weaponComponent.update(deltaTime, inputState, this.movementComponent.position);
+
+        // Update entity position from movement component
+        this.x = this.movementComponent.position.x;
+        this.y = this.movementComponent.position.y;
     }
 
     takeDamage(amount) {
-        if (this.invulnerable) return false;
-        return this.healthComponent.takeDamage(amount);
+        if (this.statsComponent.isInvulnerable()) return false;
+
+        const died = this.healthComponent.takeDamage(amount);
+        if (died) {
+            this.alive = false;
+        }
+
+        // Update game state
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.health = this.healthComponent.currentHealth;
+            window.gameInstance.gameState.maxHealth = this.healthComponent.maxHealth;
+        }
+
+        return died;
     }
 
     heal(amount) {
         this.healthComponent.heal(amount);
-        this.health = this.healthComponent.currentHealth;
+
+        // Update game state
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.health = this.healthComponent.currentHealth;
+        }
     }
 
-    applyUpgrade(upgradeData) {
-        // Apply upgrade to relevant components
-        if (this.healthComponent) {
-            this.healthComponent.applyUpgrade(upgradeData);
-        }
-        if (this.weaponComponent) {
-            this.weaponComponent.applyUpgrade(upgradeData);
-        }
-        if (this.movementComponent) {
-            this.movementComponent.applyUpgrade(upgradeData);
-        }
+    setMaxHealth(newMax) {
+        this.healthComponent.setMaxHealth(newMax);
 
-        // Sync values
-        this.damage = this.weaponComponent.damage;
-        this.fireRate = this.weaponComponent.fireRate;
-        this.speed = this.movementComponent.speed;
+        // Update game state
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.maxHealth = this.healthComponent.maxHealth;
+            window.gameInstance.gameState.health = this.healthComponent.currentHealth;
+        }
+    }
+
+    increaseDamage(amount) {
+        this.weaponComponent.increaseDamage(amount);
+    }
+
+    setFireRateMultiplier(multiplier) {
+        this.weaponComponent.setFireRateMultiplier(multiplier);
+    }
+
+    increaseSpeed(amount) {
+        this.movementComponent.increaseSpeed(amount);
+    }
+
+    increaseHealthPickupChance(amount) {
+        this.statsComponent.increaseHealthPickupChance(amount);
+    }
+
+    increaseHealthPickupAmount(amount) {
+        this.statsComponent.increaseHealthPickupAmount(amount);
+    }
+
+    setInvulnerable(value) {
+        this.statsComponent.setInvulnerable(value);
+    }
+
+    // Getters for backward compatibility
+    get health() { return this.healthComponent.currentHealth; }
+    set health(value) { 
+        this.healthComponent.currentHealth = value;
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.health = value;
+        }
+    }
+
+    get maxHealth() { return this.healthComponent.maxHealth; }
+    set maxHealth(value) { 
+        this.healthComponent.setMaxHealth(value);
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.maxHealth = value;
+        }
+    }
+
+    get speed() { return this.movementComponent.currentSpeed; }
+    set speed(value) { this.movementComponent.currentSpeed = value; }
+
+    get damage() { return this.weaponComponent.damage; }
+    set damage(value) { this.weaponComponent.damage = value; }
+
+    get fireRate() { return this.weaponComponent.currentFireRate; }
+    set fireRate(value) { this.weaponComponent.currentFireRate = value; }
+
+    get healthPickupChance() { return this.statsComponent.getHealthPickupChance(); }
+    set healthPickupChance(value) { this.statsComponent.increaseHealthPickupChance(value - this.statsComponent.getHealthPickupChance()); }
+
+    get healthPickupAmount() { return this.statsComponent.getHealthPickupAmount(); }
+    set healthPickupAmount(value) { this.statsComponent.increaseHealthPickupAmount(value - this.statsComponent.getHealthPickupAmount()); }
+
+    get invulnerable() { return this.statsComponent.isInvulnerable(); }
+    set invulnerable(value) { this.statsComponent.setInvulnerable(value); }
+
+    getBullets() {
+        return this.weaponComponent.getBullets();
     }
 
     render(ctx) {
+        // Render player ship
         ctx.save();
 
-        if (this.invulnerable) {
+        if (this.statsComponent.isInvulnerable()) {
             const flash = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
             ctx.globalAlpha = 0.7 + flash * 0.3;
         }
@@ -105,8 +156,8 @@ export class Player extends Entity {
         ctx.fill();
 
         // Show charge indicator when charging
-        if (this.burstFireComponent.isCharging && this.burstFireComponent.chargedBullets > 0) {
-            const chargeRatio = this.burstFireComponent.getChargeRatio();
+        if (this.weaponComponent.isCharging && this.weaponComponent.chargedBullets > 0) {
+            const chargeRatio = Math.min((Date.now() - this.weaponComponent.chargeStartTime) / this.weaponComponent.maxChargeTime, 1);
             const radius = 20 + chargeRatio * 10;
             const alpha = 0.3 + chargeRatio * 0.4;
 
@@ -120,36 +171,22 @@ export class Player extends Entity {
             ctx.fillStyle = '#00ffff';
             ctx.font = '12px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(this.burstFireComponent.chargedBullets, this.x, this.y + 5);
+            ctx.fillText(this.weaponComponent.chargedBullets, this.x, this.y + 5);
         }
 
         ctx.restore();
 
-        // Render weapon bullets
-        this.weaponComponent.render(ctx);
+        // Render bullets
+        this.weaponComponent.getBullets().forEach(bullet => bullet.render(ctx));
     }
 
     reset() {
         this.x = 400;
         this.y = 500;
+        this.healthComponent = new HealthComponent(100);
+        this.movementComponent.setPosition(400, 500);
+        this.weaponComponent.clearBullets();
         this.alive = true;
-        this.invulnerable = false;
-
-        // Reset all components
-        this.healthComponent.reset();
-        this.weaponComponent.reset();
-        this.movementComponent.reset();
-        this.burstFireComponent.reset();
-
-        // Sync values
-        this.health = this.healthComponent.currentHealth;
-        this.maxHealth = this.healthComponent.maxHealth;
-        this.damage = this.weaponComponent.damage;
-        this.fireRate = this.weaponComponent.fireRate;
-        this.speed = this.movementComponent.speed;
-    }
-
-    getBullets() {
-        return this.weaponComponent.getBullets();
+        this.statsComponent.setInvulnerable(false);
     }
 }

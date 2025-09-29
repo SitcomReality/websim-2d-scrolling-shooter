@@ -1,5 +1,5 @@
 import { GameEngine } from '../engine/GameEngine.js';
-import { Player } from './entities/Player.js';
+import { Player } from '../entities/Player.js';
 import { EnemySpawner } from '../systems/EnemySpawner.js';
 import { InputHandler } from '../systems/InputHandler.js';
 import { CollisionSystem } from '../systems/CollisionSystem.js';
@@ -33,9 +33,6 @@ export class Game {
         this.gameLoopManager = new GameLoopManager(this);
         
         this.bindEvents();
-        
-        // Make game instance globally available for component updates
-        window.gameInstance = this;
     }
     
     bindEvents() {
@@ -62,8 +59,8 @@ export class Game {
     
     handleDevHeal() {
         // Full heal
-        this.player.heal(this.player.healthComponent.maxHealth);
-        this.gameState.health = this.player.healthComponent.currentHealth;
+        this.gameState.health = this.gameState.maxHealth || 100;
+        this.player.health = this.gameState.health;
         this.uiManager.update();
     }
     
@@ -136,17 +133,27 @@ export class Game {
         this.gameState.score += this.collisionSystem.getScoreGained();
         this.gameState.xp += this.collisionSystem.getScoreGained();
         
+        // Update player health from game state
+        this.player.health = this.gameState.health;
+        
         // Check for damage
         const damageTaken = this.collisionSystem.getDamageTaken();
         if (damageTaken > 0) {
-            this.player.takeDamage(damageTaken);
-            this.gameState.health = this.player.healthComponent.currentHealth;
+            this.gameState.health = Math.max(0, this.gameState.health - damageTaken);
+            this.player.health = this.gameState.health;
         }
         
         // Check for level up
         if (this.gameState.xp >= this.gameState.xpToNextLevel) {
             this.levelUpManager.handleLevelUp();
         }
+        
+        // Check for damage
+        this.gameState.health -= this.collisionSystem.getDamageTaken();
+        
+        // Update player health from game state
+        this.player.health = this.gameState.health;
+        this.player.maxHealth = this.gameState.maxHealth || 100;
         
         // Trigger animations for changes
         if (this.gameState.health !== previousHealth) {
@@ -166,8 +173,8 @@ export class Game {
         this.powerUpSystem.checkPlayerCollision(this.player);
         
         // Update UI with current health values
-        this.gameState.health = this.player.healthComponent.currentHealth;
-        this.gameState.maxHealth = this.player.healthComponent.maxHealth;
+        this.gameState.health = this.player.health;
+        this.gameState.maxHealth = this.player.maxHealth || 100;
         this.uiManager.update();
         
         // Update damage text system
