@@ -1,6 +1,22 @@
+import { GameEngine } from '../engine/GameEngine.js';
+import { Player } from './entities/Player.js';
 import { EnemySpawner } from './systems/EnemySpawner.js';
-import { PowerUpSystem } from './systems/PowerUpSystem.js';
-
-import { EnemySpawner } from '../systems/EnemySpawner.js';
+import { InputHandler } from '../systems/InputHandler.js';
+import { CollisionSystem } from '../systems/CollisionSystem.js';
+import { ParticleSystem } from '../systems/ParticleSystem.js';
 import { PowerUpSystem } from '../systems/PowerUpSystem.js';
+import { UpgradeSystem } from './upgrades/UpgradeSystem.js';
+import { UIManager } from './UIManager.js';
+import { GameState } from './GameState.js';
+import { GameLoopManager } from './GameLoopManager.js';
+import { SidePanelManager } from './SidePanelManager.js';
+import { LevelUpManager } from './LevelUpManager.js';
+import { WeaponFactory } from './weapons/WeaponFactory.js';
+import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
+import { MovementSystem } from './systems/MovementSystem.js';
+import { UtilitySystem } from './systems/UtilitySystem.js';
+import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
+import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
+import { LuckUpgrade } from './upgrades/types/LuckUpgrade.js';
+import { SynergySystem } from '../systems/SynergySystem.js';
 
