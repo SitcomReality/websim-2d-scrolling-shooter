@@ -1,3 +1,5 @@
+import { Entity } from '../game/entities/Entity.js';
+
 export class PowerUpSystem {
     constructor() {
         this.powerUps = [];
@@ -7,7 +9,8 @@ export class PowerUpSystem {
     
     update(deltaTime) {
         if (Date.now() - this.lastSpawnTime > this.spawnRate) {
-            // Implementation for power-ups
+            this.spawnPowerUp();
+            this.lastSpawnTime = Date.now();
         }
         
         this.powerUps.forEach(powerUp => powerUp.update(deltaTime));
@@ -19,7 +22,7 @@ export class PowerUpSystem {
     }
     
     spawnHealthPickup(x, y) {
-        const healthAmount = 5; // Fixed amount
+        const healthAmount = this.player?.healthPickupAmount || 5;
         this.powerUps.push(new HealthPickup(x, y, healthAmount));
     }
     
@@ -37,8 +40,6 @@ export class PowerUpSystem {
         }
     }
 }
-
-import { Entity } from '../entities/Entity.js';
 
 class HealthPickup extends Entity {
     constructor(x, y, healthAmount = 5) {
@@ -77,8 +78,13 @@ class HealthPickup extends Entity {
     }
     
     apply(player) {
-        const maxHealth = 100; // Default max health
-        const healthAmount = this.value;
-        player.health = Math.min(player.health + healthAmount, maxHealth);
+        const maxHealth = player.maxHealth || 100
+        const healthAmount = player.healthPickupAmount || this.value
+        player.health = Math.min(player.health + healthAmount, maxHealth)
+        
+        // Update game state health to match player
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.health = player.health
+        }
     }
 }
