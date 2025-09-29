@@ -5,7 +5,7 @@ import { InputHandler } from '../systems/InputHandler.js';
 import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { ParticleSystem } from '../systems/ParticleSystem.js';
 import { PowerUpSystem } from '../systems/PowerUpSystem.js';
-import { UpgradeSystem } from '../systems/UpgradeSystem.js';
+import { UpgradeSystem } from './upgrades/UpgradeSystem.js';
 import { UIManager } from './UIManager.js';
 import { GameState } from './GameState.js';
 import { GameLoopManager } from './GameLoopManager.js';
