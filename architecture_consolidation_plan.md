@@ -25,5 +25,5 @@
 
 ## Proposed Architecture
 
-### Suggested File Structure
+### Directory Structure
 
