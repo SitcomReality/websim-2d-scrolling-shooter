@@ -20,13 +20,19 @@ export class SpeedUpgrade extends BaseUpgrade {
     }
     
     apply(player, values) {
-        const speedIncrease = values.speed || values.common;
+        const speedIncrease = values.speed || values[this.id] || values.common;
         player.speed = (player.speed || 5) + speedIncrease;
     }
     
     getDescription(values) {
-        const speedIncrease = values.speed || values.common;
+        const speedIncrease = values.speed || values[this.id] || values.common;
         return `Increases speed by ${speedIncrease.toFixed(1)}`;
     }
+    
+    getValues(rarity) {
+        const baseValues = this.values;
+        return {
+            speed: baseValues[rarity] || baseValues.common
+        };
+    }
 }
-

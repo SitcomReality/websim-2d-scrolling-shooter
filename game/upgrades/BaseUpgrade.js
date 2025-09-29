@@ -26,5 +26,12 @@ export class BaseUpgrade {
     getDisplayValues(values) {
         return values;
     }
+    
+    getValues(rarity) {
+        // Default implementation - override in subclasses for custom logic
+        if (this.values[rarity]) {
+            return { [this.id]: this.values[rarity] };
+        }
+        return this.values;
+    }
 }
-

@@ -20,14 +20,20 @@ export class FireRateUpgrade extends BaseUpgrade {
     }
     
     apply(player, values) {
-        const multiplier = values.fireRateMultiplier || values.common;
+        const multiplier = values.fireRateMultiplier || values.fireRate || values[this.id] || values.common;
         player.fireRate = (player.fireRate || 150) * multiplier;
     }
     
     getDescription(values) {
-        const multiplier = values.fireRateMultiplier || values.common;
+        const multiplier = values.fireRateMultiplier || values.fireRate || values[this.id] || values.common;
         const percent = Math.round((1 - multiplier) * 100);
         return `Increases fire rate by ${percent}%`;
     }
+    
+    getValues(rarity) {
+        const baseValues = this.values;
+        return {
+            fireRateMultiplier: baseValues[rarity] || baseValues.common
+        };
+    }
 }
-

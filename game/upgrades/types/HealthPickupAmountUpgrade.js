@@ -20,13 +20,19 @@ export class HealthPickupAmountUpgrade extends BaseUpgrade {
     }
     
     apply(player, values) {
-        const amountIncrease = values.amountIncrease || values.common;
+        const amountIncrease = values.amountIncrease || values[this.id] || values.common;
         player.healthPickupAmount = (player.healthPickupAmount || 5) + amountIncrease;
     }
     
     getDescription(values) {
-        const amountIncrease = values.amountIncrease || values.common;
+        const amountIncrease = values.amountIncrease || values[this.id] || values.common;
         return `+${amountIncrease} health per pickup`;
     }
+    
+    getValues(rarity) {
+        const baseValues = this.values;
+        return {
+            amountIncrease: baseValues[rarity] || baseValues.common
+        };
+    }
 }
-

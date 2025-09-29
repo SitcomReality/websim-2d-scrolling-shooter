@@ -25,10 +25,11 @@ export class UpgradeSystem {
         for (let i = 0; i < Math.min(4, available.length); i++) {
             const upgrade = available[Math.floor(Math.random() * available.length)];
             const rarity = this.rollRarity();
+            const values = upgrade.getValues(rarity);
             choices.push({
                 upgrade: upgrade,
                 rarity: rarity,
-                values: upgrade.getValues(rarity)
+                values: values
             });
         }
         
@@ -75,22 +76,28 @@ export class UpgradeSystem {
         
         if (upgrade.name === 'Max Health') {
             description = 'Increases your maximum health';
-            valueText = `+${values.health} HP`;
+            const healthIncrease = values.health || values[upgrade.id] || values.common;
+            valueText = `+${healthIncrease} HP`;
         } else if (upgrade.name === 'Damage Boost') {
             description = 'Increases your bullet damage';
-            valueText = `+${values.damage} Damage`;
+            const damageIncrease = values.damage || values[upgrade.id] || values.common;
+            valueText = `+${damageIncrease} Damage`;
         } else if (upgrade.name === 'Movement Speed') {
             description = 'Increases your movement speed';
-            valueText = `+${values.speed} Speed`;
+            const speedIncrease = values.speed || values[upgrade.id] || values.common;
+            valueText = `+${speedIncrease.toFixed(1)} Speed`;
         } else if (upgrade.name === 'Fire Rate') {
             description = 'Increases your firing speed';
-            valueText = `${Math.round((1 - values.fireRateMultiplier) * 100)}% Faster`;
+            const multiplier = values.fireRateMultiplier || values.fireRate || values[upgrade.id] || values.common;
+            valueText = `${Math.round((1 - multiplier) * 100)}% Faster`;
         } else if (upgrade.name === 'Health Pickup Chance') {
             description = 'Increases chance of health pickups from enemies';
-            valueText = `+${Math.round(values.chanceIncrease * 100)}% Chance`;
+            const chanceIncrease = values.chanceIncrease || values[upgrade.id] || values.common;
+            valueText = `+${Math.round(chanceIncrease * 100)}% Chance`;
         } else if (upgrade.name === 'Health Pickup Value') {
             description = 'Increases health restored by pickups';
-            valueText = `+${values.amountIncrease} Health`;
+            const amountIncrease = values.amountIncrease || values[upgrade.id] || values.common;
+            valueText = `+${amountIncrease} Health`;
         }
         
         card.innerHTML = `

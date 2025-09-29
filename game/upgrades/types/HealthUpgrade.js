@@ -20,7 +20,7 @@ export class HealthUpgrade extends BaseUpgrade {
     }
 
     apply(player, values) {
-        const healthIncrease = values.health || values.common;
+        const healthIncrease = values.health || values[this.id] || values.common;
         player.maxHealth = (player.maxHealth || 100) + healthIncrease;
         player.health = Math.min(player.health, player.maxHealth);
 
@@ -32,7 +32,14 @@ export class HealthUpgrade extends BaseUpgrade {
     }
 
     getDescription(values) {
-        const healthIncrease = values.health || values.common;
+        const healthIncrease = values.health || values[this.id] || values.common;
         return `Increases max health by ${healthIncrease} HP`;
+    }
+    
+    getValues(rarity) {
+        const baseValues = this.values;
+        return {
+            health: baseValues[rarity] || baseValues.common
+        };
     }
 }

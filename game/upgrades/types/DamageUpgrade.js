@@ -20,13 +20,19 @@ export class DamageUpgrade extends BaseUpgrade {
     }
     
     apply(player, values) {
-        const damageIncrease = values.damage || values.common;
+        const damageIncrease = values.damage || values[this.id] || values.common;
         player.damage = (player.damage || 1) + damageIncrease;
     }
     
     getDescription(values) {
-        const damageIncrease = values.damage || values.common;
+        const damageIncrease = values.damage || values[this.id] || values.common;
         return `Increases damage by ${damageIncrease}`;
     }
+    
+    getValues(rarity) {
+        const baseValues = this.values;
+        return {
+            damage: baseValues[rarity] || baseValues.common
+        };
+    }
 }
-
