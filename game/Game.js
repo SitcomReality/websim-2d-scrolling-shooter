@@ -18,7 +18,7 @@ import { UtilitySystem } from './systems/UtilitySystem.js';
 import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
 import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
 import { LuckUpgrade } from './upgrades/types/LuckUpgrade.js';
-import { SynergySystem } from './systems/SynergySystem.js';
+import { SynergySystem } from '../systems/SynergySystem.js';
 
 export class Game {
     constructor() {
