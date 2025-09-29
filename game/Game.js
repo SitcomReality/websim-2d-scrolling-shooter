@@ -62,8 +62,8 @@ export class Game {
     
     handleDevHeal() {
         // Full heal
-        this.gameState.health = this.gameState.maxHealth || 100;
-        this.player.health = this.gameState.health;
+        this.player.heal(this.player.healthComponent.maxHealth);
+        this.gameState.health = this.player.healthComponent.currentHealth;
         this.uiManager.update();
     }
     
@@ -136,25 +136,17 @@ export class Game {
         this.gameState.score += this.collisionSystem.getScoreGained();
         this.gameState.xp += this.collisionSystem.getScoreGained();
         
-        // Update player health from game state
-        this.player.healthComponent.currentHealth = this.gameState.health;
-        this.player.healthComponent.maxHealth = this.gameState.maxHealth;
-        
         // Check for damage
         const damageTaken = this.collisionSystem.getDamageTaken();
         if (damageTaken > 0) {
-            this.gameState.health = Math.max(0, this.gameState.health - damageTaken);
-            this.player.healthComponent.currentHealth = this.gameState.health;
+            this.player.takeDamage(damageTaken);
+            this.gameState.health = this.player.healthComponent.currentHealth;
         }
         
         // Check for level up
         if (this.gameState.xp >= this.gameState.xpToNextLevel) {
             this.levelUpManager.handleLevelUp();
         }
-        
-        // Update player health from game state
-        this.player.healthComponent.currentHealth = this.gameState.health;
-        this.player.healthComponent.maxHealth = this.gameState.maxHealth || 100;
         
         // Trigger animations for changes
         if (this.gameState.health !== previousHealth) {
