@@ -143,6 +143,9 @@ export class UpgradeSystem {
         const upgrade = choice.upgrade;
         const values = choice.values;
 
+        // Get sprite position from upgrade icon mapping
+        const spritePosition = this.getSpritePosition(upgrade.icon);
+        
         let description = '';
         let valueText = '';
 
@@ -227,6 +230,9 @@ export class UpgradeSystem {
         }
 
         card.innerHTML = `
+            <div class="upgrade-icon-container">
+                <div class="upgrade-sprite" style="background-position: ${spritePosition};"></div>
+            </div>
             <div class="upgrade-name">${upgrade.name}</div>
             <div class="upgrade-description">${description}</div>
             <div class="upgrade-value">${valueText}</div>
@@ -234,5 +240,34 @@ export class UpgradeSystem {
         `;
 
         return card;
+    }
+
+    getSpritePosition(iconIdentifier) {
+        // Map icon identifiers to sprite positions
+        const iconMap = {
+            '❤️': '0,0',    // Health
+            '⚔️': '1,0',    // Damage
+            '💨': '2,0',    // Speed
+            '🔥': '3,0',    // Fire Rate
+            '💚': '0,1',    // Health Pickup Chance
+            '💝': '1,1',    // Health Pickup Amount
+            '🔧': '2,1',    // Utility
+            '🍀': '3,1',    // Luck
+            '🎯': '0,2',    // Critical Chance
+            '💥': '1,2',    // Critical Damage
+            '🔫': '2,2',    // Piercing
+            '⚡': '3,2',    // Chain Lightning
+            '🏀': '0,3',    // Ricochet
+            '🛡️': '1,3',    // Defense (if needed)
+            '💉': '2,3',    // Lifesteal (if needed)
+            '⭐': '3,3'      // Special/Multishot
+        };
+
+        const position = iconMap[iconIdentifier] || '0,0';
+        const [col, row] = position.split(',');
+        const x = -col * 64;
+        const y = -row * 64;
+        
+        return `${x}px ${y}px`;
     }
 }
