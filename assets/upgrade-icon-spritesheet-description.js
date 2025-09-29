@@ -1,0 +1,47 @@
+// total sheet size: 256px * 384px
+// 4 columns, 6 rows of 64px * 64px icons
+
+const upgradeIconSpriteSheetDescription = {
+  "0,0": "Blue arrow pointing right with green glow at the tip",
+  "0,1": "Green arrow pointing right with green glow at the tip",
+  "0,2": "Blue circular icon with a stylized design",
+  "0,3": "Green circular icon with a stylized design",
+  "1,0": "Green hexagonal icon with a circular center",
+  "1,1": "Blue lightning bolt icon",
+  "1,2": "Silver shield icon with a blue accent",
+  "1,3": "Green circular icon with a white outline",
+  "2,0": "Blue hexagonal icon with a circular center",
+  "2,1": "Blue circular icon with a white outline",
+  "2,2": "Silver shield icon with a green accent",
+  "2,3": "Green star icon with a circular center",
+  "3,0": "Blue circular icon with a white outline",
+  "3,1": "Green hexagonal icon with a circular center",
+  "3,2": "Blue circular icon with a green outline",
+  "3,3": "Blue star icon with a circular center",
+  "4,0": "Blue hexagonal icon with a circular center",
+  "4,1": "Green circular icon with a white outline",
+  "4,2": "Blue circular icon with a white outline",
+  "4,3": "Blue lightning bolt icon",
+  "5,0": "Silver shield icon with a blue accent",
+  "5,1": "Blue star icon with a circular center",
+  "5,2": "Green circular icon with a white outline",
+  "5,3": "Blue circular icon with a green outline",
+  "6,0": "Blue hexagonal icon with a circular center",
+  "6,1": "Green hexagonal icon with a circular center",
+  "6,2": "Blue circular icon with a white outline",
+  "6,3": "Blue star icon with a circular center",
+  "7,0": "Blue rocket icon",
+  "7,1": "Blue rocket icon",
+  "7,2": "Silver shield icon with a green accent",
+  "7,3": "Blue arrow pointing up",
+  "8,0": "Blue circular icon with a white outline",
+  "8,1": "Blue circular icon with a white outline",
+  "8,2": "Blue circular icon with a white outline",
+  "8,3": "Blue circular icon with a white outline",
+  "9,0": "Blue circular icon with a white outline",
+  "9,1": "Blue circular icon with a white outline",
+  "9,2": "Blue circular icon with a white outline",
+  "9,3": "Blue circular icon with a white outline"
+};
+
+export default upgradeIconSpriteSheetDescription;
