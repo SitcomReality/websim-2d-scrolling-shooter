@@ -56,7 +56,9 @@ export class UpgradeSystem {
     
     applyUpgrade(upgradeChoice, player) {
         const { upgrade, rarity, values } = upgradeChoice;
-        upgrade.apply(player, values);
+        
+        // Apply upgrade using the new component system
+        player.applyUpgrade(values);
         
         if (!this.playerUpgrades.has(upgrade.name)) {
             this.playerUpgrades.set(upgrade.name, { count: 0 });
@@ -110,6 +112,14 @@ export class UpgradeSystem {
         return card;
     }
 }
+
+// Import upgrade types
+import { HealthUpgrade } from '../game/upgrades/types/HealthUpgrade.js';
+import { DamageUpgrade } from '../game/upgrades/types/DamageUpgrade.js';
+import { SpeedUpgrade } from '../game/upgrades/types/SpeedUpgrade.js';
+import { FireRateUpgrade } from '../game/upgrades/types/FireRateUpgrade.js';
+import { HealthPickupChanceUpgrade } from '../game/upgrades/types/HealthPickupChanceUpgrade.js';
+import { HealthPickupAmountUpgrade } from '../game/upgrades/types/HealthPickupAmountUpgrade.js';
 
 class BaseUpgrade {
     constructor(name) {
