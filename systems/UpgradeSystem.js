@@ -52,7 +52,6 @@ export class UpgradeSystem {
             normalizedWeights[rarity] = (weight / total) * 100;
         }
         
-        const total = Object.values(normalizedWeights).reduce((a, b) => a + b, 0);
         const roll = Math.random() * total;
         
         let cumulative = 0;
