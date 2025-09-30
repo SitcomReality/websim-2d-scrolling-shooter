@@ -1,4 +1,4 @@
-import { Entity } from './Entity.js';
+import { Entity } from '../entities/Entity.js';
 import { HealthComponent } from '../components/HealthComponent.js';
 import { MovementComponent } from '../components/MovementComponent.js';
 import { WeaponComponent } from '../components/WeaponComponent.js';
