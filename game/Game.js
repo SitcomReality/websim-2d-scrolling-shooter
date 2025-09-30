@@ -1,9 +1,9 @@
-import { GameEngine } from '../engine/GameEngine.js';
-import { Player } from '../entities/Player.js';
+import { GameEngine } from './GameEngine.js';
+import { Player } from './entities/Player.js';
 import { EnemySpawner } from './systems/EnemySpawner.js';
-import { InputHandler } from '../systems/InputHandler.js';
-import { CollisionSystem } from '../systems/CollisionSystem.js';
-import { ParticleSystem } from '../systems/ParticleSystem.js';
+import { InputHandler } from './systems/InputHandler.js';
+import { CollisionSystem } from './systems/CollisionSystem.js';
+import { ParticleSystem } from './systems/ParticleSystem.js';
 import { PowerUpSystem } from './systems/PowerUpSystem.js';
 import { UpgradeSystem } from './upgrades/UpgradeSystem.js';
 import { UIManager } from './managers/UIManager.js';
@@ -18,7 +18,7 @@ import { UtilitySystem } from './systems/UtilitySystem.js';
 import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
 import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
 import { LuckUpgrade } from './upgrades/types/LuckUpgrade.js';
-import { SynergySystem } from '../systems/SynergySystem.js';
+import { SynergySystem } from './systems/SynergySystem.js';
 
 export class Game {
     constructor() {
