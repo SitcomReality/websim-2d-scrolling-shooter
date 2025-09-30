@@ -4,10 +4,88 @@ import { MovementComponent } from '../components/MovementComponent.js';
 import { WeaponComponent } from '../components/WeaponComponent.js';
 import { PlayerStatsComponent } from '../components/PlayerStatsComponent.js';
 import ChargeComponent from '../components/ChargeComponent.js';
+import StatSystem from '../systems/StatSystem.js';
 
 export class Player extends Entity {
     constructor(x, y, weaponFactory) {
         super(x, y, 40, 40);
+
+        // Initialize stat system (new)
+        this.statSystem = new StatSystem();
+
+        // Register core baseline stats
+        this.statSystem.registerStat({
+            id: 'maxHealth',
+            name: 'Max Health',
+            baseValue: 100,
+            description: 'Maximum health',
+            category: 'defensive',
+            upgradeWeight: 0.8
+        });
+        this.statSystem.registerStat({
+            id: 'health',
+            name: 'Health',
+            baseValue: 100,
+            description: 'Current health (managed by healthComponent)',
+            category: 'defensive',
+            upgradeWeight: 0
+        });
+        this.statSystem.registerStat({
+            id: 'damage',
+            name: 'Damage',
+            baseValue: 1,
+            description: 'Bullet damage',
+            category: 'offensive',
+            upgradeWeight: 0.9
+        });
+        this.statSystem.registerStat({
+            id: 'speed',
+            name: 'Speed',
+            baseValue: 5,
+            description: 'Movement speed',
+            category: 'mobility',
+            upgradeWeight: 0.7
+        });
+        this.statSystem.registerStat({
+            id: 'fireRate',
+            name: 'Fire Rate',
+            baseValue: 150,
+            description: 'Milliseconds between shots',
+            category: 'offensive',
+            upgradeWeight: 0.6
+        });
+        this.statSystem.registerStat({
+            id: 'criticalChance',
+            name: 'Critical Chance',
+            baseValue: 0.01,
+            description: 'Chance to deal critical damage',
+            category: 'offensive',
+            upgradeWeight: 0.4
+        });
+        this.statSystem.registerStat({
+            id: 'criticalDamage',
+            name: 'Critical Damage',
+            baseValue: 0.5,
+            description: 'Extra damage multiplier on crit',
+            category: 'offensive',
+            upgradeWeight: 0.4
+        });
+        this.statSystem.registerStat({
+            id: 'luck',
+            name: 'Luck',
+            baseValue: 1.0,
+            description: 'Affects upgrade quality and reroll cost',
+            category: 'utility',
+            upgradeWeight: 0.5
+        });
+        this.statSystem.registerStat({
+            id: 'lifesteal',
+            name: 'Lifesteal',
+            baseValue: 0,
+            description: 'Fraction of damage healed on hit',
+            category: 'defensive',
+            upgradeWeight: 0.2
+        });
 
         // Initialize components
         this.healthComponent = new HealthComponent(100);
@@ -35,6 +113,13 @@ export class Player extends Entity {
 
         // Visual properties
         this.color = '#00ffff';
+
+        // Keep gameState in sync with statSystem values where appropriate
+        // initialize values
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.maxHealth = this.statSystem.getStatValue('maxHealth');
+            window.gameInstance.gameState.health = this.healthComponent.currentHealth;
+        }
     }
 
     update(deltaTime, inputState) {
@@ -132,7 +217,7 @@ export class Player extends Entity {
         this.statsComponent.setInvulnerable(value);
     }
 
-    // Getters for backward compatibility
+    // Getters/setters now backed by statSystem where appropriate
     get health() { return this.healthComponent.currentHealth; }
     set health(value) { 
         this.healthComponent.currentHealth = value;
@@ -141,22 +226,23 @@ export class Player extends Entity {
         }
     }
 
-    get maxHealth() { return this.healthComponent.maxHealth; }
+    get maxHealth() { return this.statSystem.getStatValue('maxHealth'); }
     set maxHealth(value) { 
-        this.healthComponent.setMaxHealth(value);
+        this.statSystem.setBaseValue('maxHealth', value);
+        this.healthComponent.setMaxHealth(this.statSystem.getStatValue('maxHealth'));
         if (window.gameInstance && window.gameInstance.gameState) {
-            window.gameInstance.gameState.maxHealth = value;
+            window.gameInstance.gameState.maxHealth = this.statSystem.getStatValue('maxHealth');
         }
     }
 
-    get speed() { return this.movementComponent.currentSpeed; }
-    set speed(value) { this.movementComponent.currentSpeed = value; }
+    get speed() { return this.statSystem.getStatValue('speed'); }
+    set speed(value) { this.statSystem.setBaseValue('speed', value); }
 
-    get damage() { return this.weaponComponent.damage; }
-    set damage(value) { this.weaponComponent.damage = value; }
+    get damage() { return this.statSystem.getStatValue('damage'); }
+    set damage(value) { this.statSystem.setBaseValue('damage', value); }
 
-    get fireRate() { return this.weaponComponent.currentFireRate; }
-    set fireRate(value) { this.weaponComponent.currentFireRate = value; }
+    get fireRate() { return this.statSystem.getStatValue('fireRate'); }
+    set fireRate(value) { this.statSystem.setBaseValue('fireRate', value); }
 
     get healthPickupChance() { return this.statsComponent.getHealthPickupChance(); }
     set healthPickupChance(value) { this.statsComponent.increaseHealthPickupChance(value - this.statsComponent.getHealthPickupChance()); }
