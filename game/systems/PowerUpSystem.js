@@ -1,4 +1,4 @@
-import { Entity } from '../../entities/Entity.js';
+import { Entity } from '../entities/Entity.js';
 
 export class PowerUpSystem {
     constructor() {
