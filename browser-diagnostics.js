@@ -179,4 +179,4 @@ window.addEventListener('load', () => {
 });
 
 // Export for use in other modules
-export { runImportDiagnostics, showDetailedDiagnostics };
+export { runImportDiagnostics, showDetailedDiagnostics, clearErrorLog };
