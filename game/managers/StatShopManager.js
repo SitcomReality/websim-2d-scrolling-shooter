@@ -4,6 +4,12 @@ export class StatShopManager {
         this.player = player;
         this.container = null;
         this._createOverlay();
+
+        // Track purchased levels per stat in Phase 2
+        this.upgradeLevels = new Map(); // key -> level (number)
+        this.maxLevels = {
+            health: 5, damage: 5, speed: 5, lifesteal: 5
+        };
     }
 
     _createOverlay() {
@@ -45,39 +51,18 @@ export class StatShopManager {
     _renderItems() {
         // Phase 1 items (minimal, per spec)
         const items = [
-            { id: 'health', name: 'Max Health +5', cost: 30, apply: () => { 
-                if (typeof this.player.setMaxHealth === 'function') {
-                    this.player.setMaxHealth((this.player.maxHealth || 100) + 5);
-                } else {
-                    this.player.maxHealth = (this.player.maxHealth || 100) + 5;
-                }
-            } },
-            { id: 'damage', name: 'Damage +1', cost: 50, apply: () => { 
-                if (typeof this.player.increaseDamage === 'function') {
-                    this.player.increaseDamage(1);
-                } else {
-                    this.player.damage = (this.player.damage || 1) + 1;
-                }
-            } },
-            { id: 'speed', name: 'Speed +0.5', cost: 40, apply: () => { 
-                if (typeof this.player.increaseSpeed === 'function') {
-                    this.player.increaseSpeed(0.5);
-                } else {
-                    this.player.speed = (this.player.speed || 5) + 0.5;
-                }
-            } },
-            { id: 'lifesteal', name: 'Lifesteal +2%', cost: 60, apply: () => { 
-                // prefer statsComponent if present, otherwise attach property directly
-                if (this.player.statsComponent && typeof this.player.statsComponent.stats === 'object') {
-                    this.player.statsComponent.stats.lifesteal = (this.player.statsComponent.stats.lifesteal || 0) + 0.02;
-                } else {
-                    this.player.lifesteal = (this.player.lifesteal || 0) + 0.02;
-                }
-            } }
+            { id: 'health', name: 'Max Health', base: 5, cost: 30, apply: (lvl) => { this.player.setMaxHealth((this.player.maxHealth || 100) + (this.baseValue('health') * lvl)); } },
+            { id: 'damage', name: 'Damage', base: 1, cost: 50, apply: (lvl) => { if (this.player.weaponComponent) this.player.increaseDamage(this.baseValue('damage') * lvl); else this.player.damage = (this.player.damage || 1) + (this.baseValue('damage') * lvl); } },
+            { id: 'speed', name: 'Speed', base: 0.5, cost: 40, apply: (lvl) => { this.player.increaseSpeed(this.baseValue('speed') * lvl); } },
+            { id: 'lifesteal', name: 'Lifesteal', base: 0.02, cost: 60, apply: (lvl) => { this.player.lifesteal = (this.player.lifesteal || 0) + (this.baseValue('lifesteal') * lvl); } }
         ];
 
         this._itemsContainer.innerHTML = '';
         items.forEach(item => {
+            const currentLevel = this.upgradeLevels.get(item.id) || 0;
+            const maxLevel = this.maxLevels[item.id] || 5;
+            const nextLevel = currentLevel + 1;
+            const scaledCost = Math.round(item.cost * (1 + currentLevel * 0.25)); // cost scales per level
             const node = document.createElement('div');
             node.style.background = 'rgba(0,255,255,0.06)';
             node.style.border = '1px solid rgba(0,255,255,0.2)';
@@ -88,50 +73,61 @@ export class StatShopManager {
             node.style.flexDirection = 'column';
             node.style.gap = '8px';
             node.innerHTML = `
-                <div style="font-weight:bold;color:#00ffff;">${item.name}</div>
-                <div style="color:#cccccc;font-size:13px;">Cost: ${item.cost} XP</div>
+                <div style="font-weight:bold;color:#00ffff;">${item.name} ${currentLevel > 0 ? `(Lv ${currentLevel})` : ''}</div>
+                <div style="color:#cccccc;font-size:13px;">Next: +${(item.base).toString().replace(/^0\./,'0.')} ${item.id === 'lifesteal' ? '(fraction)' : ''}</div>
+                <div style="color:#cccccc;font-size:13px;">Cost: ${scaledCost} XP</div>
                 <button data-id="${item.id}" style="padding:6px;border-radius:6px;border:none;cursor:pointer;background:#00ffff;color:#000;font-weight:bold;">Buy</button>
             `;
             const btn = node.querySelector('button');
 
             const updateButtonState = () => {
-                if (this.gameState.xp >= item.cost) {
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                } else {
+                const level = this.upgradeLevels.get(item.id) || 0;
+                if (level >= maxLevel) {
                     btn.disabled = true;
-                    btn.style.opacity = '0.6';
+                    btn.textContent = 'Maxed';
+                    btn.style.background = '#444';
+                    btn.style.color = '#ccc';
+                } else if (this.gameState.xp < scaledCost) {
+                    btn.disabled = true;
+                    btn.textContent = `Need ${scaledCost} XP`;
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = `Buy (${scaledCost} XP)`;
+                    btn.style.background = '#00ffff';
+                    btn.style.color = '#000';
                 }
             };
 
+            updateButtonState();
+
             btn.addEventListener('click', () => {
-                if (this.gameState.xp >= item.cost) {
-                    this.gameState.xp -= item.cost;
-                    item.apply();
-                    // update displayed balance and UI
+                const level = this.upgradeLevels.get(item.id) || 0;
+                if (level >= maxLevel) return;
+                if (this.gameState.xp >= scaledCost) {
+                    this.gameState.xp -= scaledCost;
+                    // increment level
+                    this.upgradeLevels.set(item.id, level + 1);
+                    // apply the item's effect scaled by 1 (apply only incremental change)
+                    item.apply(1);
+                    // update balance display and UI
                     this._balanceEl.textContent = `XP: ${Math.round(this.gameState.xp)}`;
-                    // refresh all buttons since XP changed
-                    Array.from(this._itemsContainer.querySelectorAll('button')).forEach(b => {
-                        const id = b.getAttribute('data-id');
-                        const it = items.find(i => i.id === id);
-                        if (it) {
-                            b.disabled = !(this.gameState.xp >= it.cost);
-                        }
-                    });
+                    // rerender items to refresh costs/levels
+                    this._renderItems();
                     if (window.gameInstance && window.gameInstance.uiManager) window.gameInstance.uiManager.update();
                     if (window.gameInstance && window.gameInstance.sidePanelManager) window.gameInstance.sidePanelManager.updateSidePanels();
                 } else {
-                    // visual feedback: briefly flash
                     btn.style.transform = 'translateY(-1px)';
                     setTimeout(() => btn.style.transform = '', 120);
                 }
             });
-
-            // set initial enabled/disabled state based on current XP
-            updateButtonState();
-
             this._itemsContainer.appendChild(node);
         });
+    }
+
+    // helper to return base incremental value by id
+    baseValue(id) {
+        const map = { health: 5, damage: 1, speed: 0.5, lifesteal: 0.02 };
+        return map[id] || 1;
     }
 
     show() {
