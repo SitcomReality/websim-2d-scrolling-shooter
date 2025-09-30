@@ -11,6 +11,7 @@ import { GameState } from './GameState.js';
 import { GameLoopManager } from './managers/GameLoopManager.js';
 import { SidePanelManager } from './managers/SidePanelManager.js';
 import { LevelUpManager } from './managers/LevelUpManager.js';
+import { StatShopManager } from './managers/StatShopManager.js';
 import { WeaponFactory } from './weapons/WeaponFactory.js';
 import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
 import { MovementSystem } from './systems/MovementSystem.js';
@@ -51,6 +52,7 @@ export class Game {
         
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
+        this.statShopManager = new StatShopManager(this.gameState, this.player);
         this.gameLoopManager = new GameLoopManager(this);
         
         // Ensure MovementSystem knows about the player's movement component and bounds
@@ -69,6 +71,9 @@ export class Game {
         this.uiManager.on('continue', () => this.levelUpManager.continueAfterLevelUp());
         this.uiManager.on('upgradeSelected', (index) => this.levelUpManager.handleUpgradeSelection(index));
         this.uiManager.on('rerollUpgrades', () => this.handleReroll());
+        this.uiManager.on('openStatShop', () => {
+            if (this.statShopManager) this.statShopManager.show();
+        });
         
         // Dev panel events
         this.uiManager.on('devLevelUp', () => this.handleDevLevelUp());

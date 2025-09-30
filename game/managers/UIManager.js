@@ -30,6 +30,11 @@ export class UIManager extends EventEmitter {
             this.emit('restart');
         });
         
+        const openShopBtn = document.getElementById('open-shop-btn');
+        if (openShopBtn) {
+            openShopBtn.addEventListener('click', () => this.emit('openStatShop'));
+        }
+        
         // Dev panel events
         const levelUpBtn = document.getElementById('level-up-btn');
         if (levelUpBtn) {
