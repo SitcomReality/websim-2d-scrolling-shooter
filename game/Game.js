@@ -53,7 +53,21 @@ export class Game {
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
         this.statShopManager = new StatShopManager(this.gameState, this.player);
-        this.shopSystem = new (await (async () => { return (await import('./shop/ShopSystem.js')).default; })) (this.gameState); // dynamic import to avoid load-order issues
+        
+        // dynamic import to avoid load-order issues — initialize asynchronously
+        import('./shop/ShopSystem.js').then(mod => {
+            try {
+                this.shopSystem = new (mod.default)(this.gameState);
+                // load persisted owned items into shop (best-effort)
+                if (this.shopSystem && typeof this.shopSystem.loadPersistedOwned === 'function') {
+                    const owned = this.shopSystem.loadPersistedOwned();
+                    if (owned && owned.length) this.shopSystem.loadOwnedItems(owned, this.player);
+                }
+            } catch (e) {
+                console.warn('Failed to initialize ShopSystem', e);
+            }
+        }).catch(err => console.warn('Failed to import ShopSystem', err));
+        
         this.gameLoopManager = new GameLoopManager(this);
         
         // Ensure MovementSystem knows about the player's movement component and bounds
