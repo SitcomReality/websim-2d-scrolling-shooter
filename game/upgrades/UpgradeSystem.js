@@ -12,7 +12,8 @@ import { CriticalDamageUpgrade } from './types/CriticalDamageUpgrade.js';
 import { PiercingUpgrade } from './types/PiercingUpgrade.js';
 import { ChainUpgrade } from './types/ChainUpgrade.js';
 import { RicochetUpgrade } from './types/RicochetUpgrade.js';
-import { ProceduralUpgradeSystem } from '../../systems/ProceduralUpgradeSystem.js';
+import { UpgradeGenerator } from './UpgradeGenerator.js';
+import { UpgradeCardCreator } from './UpgradeCardCreator.js';
 
 export class UpgradeSystem {
     constructor(weaponFactory) {
@@ -42,87 +43,17 @@ export class UpgradeSystem {
             legendary: 2
         };
 
-        this.proceduralGenerator = null;
-        this.proceduralChance = 0.3; // 30% chance for procedural upgrades
+        // Initialize modular components
+        this.upgradeGenerator = new UpgradeGenerator(this.rarityWeights);
+        this.upgradeCardCreator = new UpgradeCardCreator();
     }
 
     generateUpgradeChoices(level, playerUpgrades, luck = 1.0) {
-        const choices = [];
-        const available = this.getAvailableUpgrades(level, playerUpgrades);
-
-        // Mix of regular and procedural upgrades
-        const proceduralCount = Math.random() < this.proceduralChance ? Math.floor(Math.random() * 2) + 1 : 0;
-        const regularCount = Math.min(4 - proceduralCount, available.length);
-
-        // Add regular upgrades
-        for (let i = 0; i < regularCount; i++) {
-            const upgrade = available[Math.floor(Math.random() * available.length)];
-            const rarity = this.rollRarityWithLuck(luck);
-            const values = upgrade.getValues(rarity);
-            choices.push({
-                upgrade: upgrade,
-                rarity: rarity,
-                values: values
-            });
-        }
-
-        // Add procedural upgrades
-        for (let i = 0; i < proceduralCount; i++) {
-            const proceduralUpgrade = this.generateProceduralUpgrade(level, luck);
-            if (proceduralUpgrade) {
-                choices.push(proceduralUpgrade);
-            }
-        }
-
-        return choices;
-    }
-
-    generateProceduralUpgrade(playerLevel, luck) {
-        if (!this.proceduralGenerator) {
-            this.proceduralGenerator = new ProceduralUpgradeSystem();
-        }
-
-        const proceduralData = this.proceduralGenerator.generator.generateUpgrade(playerLevel, luck);
-        const proceduralUpgrade = new ProceduralUpgradeSystem({
-            proceduralData: proceduralData
-        });
-
-        return {
-            upgrade: proceduralUpgrade,
-            rarity: proceduralData.rarity,
-            values: proceduralData.values
-        };
-    }
-
-    rollRarityWithLuck(luck) {
-        // Apply luck modifier to rarity weights
-        const modifiedWeights = {
-            common: Math.max(10, this.rarityWeights.common - (luck - 1) * 15),
-            uncommon: Math.min(40, this.rarityWeights.uncommon + (luck - 1) * 8),
-            rare: Math.min(25, this.rarityWeights.rare + (luck - 1) * 4),
-            legendary: Math.min(25, this.rarityWeights.legendary + (luck - 1) * 3)
-        };
-
-        // Normalize weights to ensure they sum to 100
-        const total = Object.values(modifiedWeights).reduce((a, b) => a + b, 0);
-        const normalizedWeights = {};
-        for (const [rarity, weight] of Object.entries(modifiedWeights)) {
-            normalizedWeights[rarity] = (weight / total) * 100;
-        }
-
-        const roll = Math.random() * total;
-
-        let cumulative = 0;
-        for (const [rarity, weight] of Object.entries(normalizedWeights)) {
-            cumulative += weight;
-            if (roll <= cumulative) return rarity;
-        }
-        return 'common';
-    }
-
-    getAvailableUpgrades(level, playerUpgrades) {
-        return this.availableUpgrades.filter(upgrade =>
-            upgrade.canBeOffered(level, playerUpgrades)
+        return this.upgradeGenerator.generateUpgradeChoices(
+            this.availableUpgrades,
+            level, 
+            playerUpgrades,
+            luck
         );
     }
 
@@ -137,137 +68,6 @@ export class UpgradeSystem {
     }
 
     createUpgradeCard(choice, index) {
-        const card = document.createElement('div');
-        card.className = `upgrade-card ${choice.rarity}`;
-
-        const upgrade = choice.upgrade;
-        const values = choice.values;
-
-        // Get sprite position from upgrade icon mapping
-        const spritePosition = this.getSpritePosition(upgrade.icon);
-        
-        let description = '';
-        let valueText = '';
-
-        if (upgrade.isProcedural) {
-            // Handle procedural upgrades
-            description = upgrade.getDescription(values);
-            const valueKey = Object.keys(values)[0];
-            const valueAmount = Object.values(values)[0];
-
-            if (valueKey === 'damage') {
-                valueText = `+${valueAmount} Damage`;
-            } else if (valueKey === 'speed') {
-                valueText = `+${valueAmount.toFixed(1)} Speed`;
-            } else if (valueKey === 'defense') {
-                valueText = `-${Math.round(valueAmount * 100)}% Damage Taken`;
-            } else if (valueKey === 'luck') {
-                valueText = `+${valueAmount.toFixed(1)} Luck`;
-            } else if (valueKey === 'critical') {
-                valueText = `+${Math.round(valueAmount * 100)}% Critical`;
-            } else if (valueKey === 'lifesteal') {
-                valueText = `+${Math.round(valueAmount * 100)}% Lifesteal`;
-            } else if (valueKey === 'multishot') {
-                valueText = `+${valueAmount} Projectiles`;
-            } else if (valueKey === 'utility') {
-                valueText = `+${valueAmount} Utility`;
-            }
-        } else {
-            // Handle regular upgrades
-            if (upgrade.name === 'Max Health') {
-                description = 'Increases your maximum health';
-                const healthIncrease = values.health || values[upgrade.id] || values.common;
-                valueText = `+${healthIncrease} HP`;
-            } else if (upgrade.name === 'Damage Boost') {
-                description = 'Increases your bullet damage';
-                const damageIncrease = values.damage || values[upgrade.id] || values.common;
-                valueText = `+${damageIncrease} Damage`;
-            } else if (upgrade.name === 'Movement Speed') {
-                description = 'Increases your movement speed';
-                const speedIncrease = values.speed || values[upgrade.id] || values.common;
-                valueText = `+${speedIncrease.toFixed(1)} Speed`;
-            } else if (upgrade.name === 'Fire Rate') {
-                description = 'Increases your firing speed';
-                const multiplier = values.fireRateMultiplier || values.fireRate || values[upgrade.id] || values.common;
-                valueText = `${Math.round((1 - multiplier) * 100)}% Faster`;
-            } else if (upgrade.name === 'Health Pickup Chance') {
-                description = 'Increases chance of health pickups from enemies';
-                const chanceIncrease = values.chanceIncrease || values[upgrade.id] || values.common;
-                valueText = `+${Math.round(chanceIncrease * 100)}% Chance`;
-            } else if (upgrade.name === 'Health Pickup Value') {
-                description = 'Increases health restored by pickups';
-                const amountIncrease = values.amountIncrease || values[upgrade.id] || values.common;
-                valueText = `+${amountIncrease} Health`;
-            } else if (upgrade.name === 'Utility Boost') {
-                description = 'Enhances utility systems';
-                const utilityBoost = values.utility || values[upgrade.id] || values.common;
-                valueText = `+${utilityBoost} Utility`;
-            } else if (upgrade.name === 'Luck') {
-                description = 'Increases the quality of upgrade offerings';
-                const luckIncrease = values.luck || values[upgrade.id] || values.common;
-                valueText = `+${luckIncrease.toFixed(1)} Luck`;
-            } else if (upgrade.name === 'Critical Chance') {
-                description = 'Increases your chance to deal critical damage';
-                const chanceIncrease = values.criticalChance || values[upgrade.id] || values.common;
-                valueText = `+${Math.round(chanceIncrease * 100)}% Critical Chance`;
-            } else if (upgrade.name === 'Critical Damage') {
-                description = 'Increases damage dealt by critical hits';
-                const damageIncrease = values.criticalDamage || values[upgrade.id] || values.common;
-                valueText = `+${Math.round(damageIncrease * 100)}% Critical Damage`;
-            } else if (upgrade.name === 'Piercing') {
-                description = 'Bullets pierce through enemies';
-                const piercingCount = values.piercing || values[upgrade.id] || values.common;
-                valueText = `Pierces ${piercingCount} additional enemies`;
-            } else if (upgrade.name === 'Chain Lightning') {
-                description = 'Bullets chain to nearby enemies';
-                const chainData = values.chain || values[upgrade.id] || values.common;
-                valueText = `Chains ${chainData.chains} times within ${chainData.range}px`;
-            } else if (upgrade.name === 'Ricochet') {
-                description = 'Bullets bounce off walls';
-                const ricochetCount = values.ricochet || values[upgrade.id] || values.common;
-                valueText = `Ricochets ${ricochetCount} times off walls`;
-            }
-        }
-
-        card.innerHTML = `
-            <div class="upgrade-icon-container">
-                <div class="upgrade-sprite" style="background-position: ${spritePosition};"></div>
-            </div>
-            <div class="upgrade-name">${upgrade.name}</div>
-            <div class="upgrade-description">${description}</div>
-            <div class="upgrade-value">${valueText}</div>
-            <div class="upgrade-rarity">${choice.rarity}</div>
-        `;
-
-        return card;
-    }
-
-    getSpritePosition(iconIdentifier) {
-        // Map icon identifiers to sprite positions
-        const iconMap = {
-            '❤️': '0,0',    // Health
-            '⚔️': '1,0',    // Damage
-            '💨': '2,0',    // Speed
-            '🔥': '3,0',    // Fire Rate
-            '💚': '0,1',    // Health Pickup Chance
-            '💝': '1,1',    // Health Pickup Amount
-            '🔧': '2,1',    // Utility
-            '🍀': '3,1',    // Luck
-            '🎯': '0,2',    // Critical Chance
-            '💥': '1,2',    // Critical Damage
-            '🔫': '2,2',    // Piercing
-            '⚡': '3,2',    // Chain Lightning
-            '🏀': '0,3',    // Ricochet
-            '🛡️': '1,3',    // Defense (if needed)
-            '💉': '2,3',    // Lifesteal (if needed)
-            '⭐': '3,3'      // Special/Multishot
-        };
-
-        const position = iconMap[iconIdentifier] || '0,0';
-        const [col, row] = position.split(',');
-        const x = -col * 64;
-        const y = -row * 64;
-        
-        return `${x}px ${y}px`;
+        return this.upgradeCardCreator.createUpgradeCard(choice, index);
     }
 }
