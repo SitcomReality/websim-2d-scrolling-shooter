@@ -42,6 +42,10 @@ export class EnemySpawner {
     getEnemies() {
         return this.enemies;
     }
+    
+    render(ctx) {
+        this.enemies.forEach(enemy => enemy.render(ctx));
+    }
 
     reset() {
         this.enemies = [];
