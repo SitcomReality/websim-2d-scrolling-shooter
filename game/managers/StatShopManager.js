@@ -14,7 +14,20 @@ export class StatShopManager {
         this.currencyKey = 'statShop_currency';
         this.collectionKey = 'statShop_collection';
         this.currency = Math.round(this.gameState.xp || 0);
-        this.collection = new Map(JSON.parse(localStorage.getItem(this.collectionKey) || '[]'));
+        // Normalize persisted collection into a Map safely (defensive against malformed data)
+        try {
+            const persisted = JSON.parse(localStorage.getItem(this.collectionKey) || '[]');
+            if (Array.isArray(persisted)) {
+                this.collection = new Map(persisted);
+            } else if (persisted && typeof persisted === 'object') {
+                // if stored as object, convert to entries
+                this.collection = new Map(Object.entries(persisted));
+            } else {
+                this.collection = new Map();
+            }
+        } catch (e) {
+            this.collection = new Map();
+        }
     }
 
     _createOverlay() {
@@ -174,6 +187,10 @@ export class StatShopManager {
     _renderCollection() {
         if (!this._collectionContainer) return;
         this._collectionContainer.innerHTML = '';
+        // Defensive: ensure collection is a Map
+        if (!this.collection || typeof this.collection.size === 'undefined') {
+            this.collection = new Map();
+        }
         if (this.collection.size === 0) {
             const empty = document.createElement('div');
             empty.style.color = '#888';
