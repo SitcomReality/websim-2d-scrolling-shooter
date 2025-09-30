@@ -49,6 +49,10 @@ export class StatShopManager {
     }
 
     _renderItems() {
+        // Defensive: ensure maps/objects exist so subsequent code can't throw
+        if (!this.upgradeLevels) this.upgradeLevels = new Map();
+        if (!this.maxLevels) this.maxLevels = { health: 5, damage: 5, speed: 5, lifesteal: 5 };
+
         // Phase 1 items (minimal, per spec)
         const items = [
             { id: 'health', name: 'Max Health', base: 5, cost: 30, apply: (lvl) => { this.player.setMaxHealth((this.player.maxHealth || 100) + (this.baseValue('health') * lvl)); } },
@@ -59,8 +63,8 @@ export class StatShopManager {
 
         this._itemsContainer.innerHTML = '';
         items.forEach(item => {
-            const currentLevel = this.upgradeLevels.get(item.id) || 0;
-            const maxLevel = this.maxLevels[item.id] || 5;
+            const currentLevel = (this.upgradeLevels && typeof this.upgradeLevels.get === 'function') ? (this.upgradeLevels.get(item.id) || 0) : 0;
+            const maxLevel = (this.maxLevels && typeof this.maxLevels[item.id] !== 'undefined') ? this.maxLevels[item.id] : 5;
             const nextLevel = currentLevel + 1;
             const scaledCost = Math.round(item.cost * (1 + currentLevel * 0.25)); // cost scales per level
             const node = document.createElement('div');
