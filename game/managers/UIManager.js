@@ -1,4 +1,6 @@
 import { EventEmitter } from '../utils/EventEmitter.js';
+import UpgradeUI from '../ui/UpgradeUI.js';
+import ShopUI from '../ui/ShopUI.js';
 
 export class UIManager extends EventEmitter {
     constructor(gameState) {
@@ -8,8 +10,7 @@ export class UIManager extends EventEmitter {
         
         this.elements = {
             canvas: document.getElementById('game-canvas'),
-            startBtn: document.getElementById('start-btn'),
-            restartBtn: document.getElementById('restart-btn'),
+            // legacy start/restart buttons removed from DOM; don't query them
             healthFill: document.getElementById('health-fill'),
             xpFill: document.getElementById('xp-fill'),
             scoreDisplay: document.getElementById('score-display'),
@@ -19,6 +20,10 @@ export class UIManager extends EventEmitter {
             currencyDisplay: document.getElementById('currency-display')
         };
         
+        // Modular UI handlers
+        this.upgradeUI = new UpgradeUI(this);
+        this.shopUI = new ShopUI(this);
+
         // Subscribe to currency change events (emitted by pickups)
         this.on('currencyChanged', (newAmount) => {
             if (this.elements.currencyDisplay) this.elements.currencyDisplay.textContent = `Currency: ${Math.round(newAmount)}`;
@@ -28,18 +33,8 @@ export class UIManager extends EventEmitter {
     }
     
     bindEvents() {
-        if (this.elements.startBtn) {
-            this.elements.startBtn.addEventListener('click', () => {
-                this.emit('start');
-            });
-        }
-        if (this.elements.restartBtn) {
-            this.elements.restartBtn.addEventListener('click', () => {
-                this.emit('restart');
-            });
-        }
-        
-        const openShopBtn = document.getElementById('open-shop-btn');
+        // Start/restart buttons removed — no handlers for them here.
+
         // Dev helper: give currency (replaces legacy open-shop dev button)
         const giveCurrencyBtn = document.getElementById('give-currency-btn');
         if (giveCurrencyBtn) {
@@ -104,6 +99,9 @@ export class UIManager extends EventEmitter {
         if (this.elements.currencyDisplay) {
             this.elements.currencyDisplay.textContent = `Currency: ${Math.round(this.gameState.currency || 0)}`;
         }
+
+        // Let modular UIs update any dynamic displays they control
+        if (this.shopUI && typeof this.shopUI.refreshBalance === 'function') this.shopUI.refreshBalance();
     }
     
     animateHealthBar() {
@@ -137,170 +135,31 @@ export class UIManager extends EventEmitter {
     }
     
     showGameOver() {
-        this.elements.restartBtn.style.display = 'block';
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) restartBtn.style.display = 'block';
     }
     
-    hideStartButton() {
-        this.elements.startBtn.style.display = 'none';
-    }
-    
-    hideRestartButton() {
-        this.elements.restartBtn.style.display = 'none';
-    }
-    
+    // legacy hideStartButton / hideRestartButton removed intentionally
+
+    // Delegate upgrade UI responsibilities
     showUpgradeSelection(choices, upgradeSystem) {
-        this.upgradeChoices = choices;
-        this.elements.upgradeChoices.innerHTML = '';
-        
-        // Add reroll button if available
-        const rerollContainer = document.createElement('div');
-        rerollContainer.className = 'reroll-container';
-        
-        const rerollButton = document.createElement('button');
-        rerollButton.className = 'reroll-button';
-        rerollButton.textContent = `Reroll (${upgradeSystem.getRerollCount()} remaining)`;
-        
-        const rerollCost = upgradeSystem.getRerollCost();
-        const canReroll = upgradeSystem.canReroll(this.gameState.xp, this.gameState.playerLuck || 1.0);
-        
-        if (canReroll) {
-            rerollButton.disabled = false;
-            rerollButton.textContent = `Reroll (${upgradeSystem.getRerollCount()} remaining)`;
-        } else {
-            rerollButton.disabled = true;
-            if (this.gameState.xp < rerollCost) {
-                rerollButton.textContent = `Need ${rerollCost} XP`;
-            } else {
-                rerollButton.textContent = 'No rerolls left';
-            }
-        }
-        
-        rerollButton.addEventListener('click', () => {
-            this.emit('rerollUpgrades');
-        });
-        
-        rerollContainer.appendChild(rerollButton);
-        this.elements.upgradeChoices.appendChild(rerollContainer);
-        
-        // Add upgrade cards
-        choices.forEach((choice, index) => {
-            const card = upgradeSystem.createUpgradeCard(choice, index);
-            card.addEventListener('click', () => {
-                this.handleUpgradeSelection(index);
-            });
-            this.elements.upgradeChoices.appendChild(card);
-        });
-        
-        this.elements.upgradeOverlay.style.display = 'flex';
+        if (this.upgradeUI) this.upgradeUI.show(choices, upgradeSystem);
     }
     
     hideUpgradeSelection() {
-        this.elements.upgradeOverlay.style.display = 'none';
+        if (this.upgradeUI) this.upgradeUI.hide();
     }
     
     handleUpgradeSelection(index) {
         this.emit('upgradeSelected', index);
     }
     
-    // Shop UI helpers (Phase 4)
+    // Shop UI delegation
     showShop(offerings = [], shopController = null) {
-        // shopController expected to provide methods: purchase(itemId) and reroll()
-        // Pause game while shop visible
-        if (this.gameState) this.gameState.isPausedForLevelUp = true;
-        // also set a dedicated flag for shop visible to help other subsystems if needed
-        this.gameState.isShopVisible = true;
-        
-        if (!document.getElementById('shop-overlay')) {
-            const overlay = document.createElement('div');
-            overlay.id = 'shop-overlay';
-            overlay.innerHTML = `
-                <div id="shop-panel">
-                    <div id="shop-header">
-                        <h2>Item Shop</h2>
-                        <div>
-                            <button id="shop-close">Close</button>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:12px;align-items:flex-start;">
-                        <div style="flex:1;">
-                            <div id="shop-items"></div>
-                        </div>
-                        <div id="shop-sidebar">
-                            <div id="shop-balance" style="color:#ffff00;font-weight:bold;margin-bottom:8px;">Currency: ${Math.round(this.gameState.currency || 0)}</div>
-                            <div id="shop-info" style="min-height:120px;">Select an item to see details here.</div>
-                        </div>
-                    </div>
-                    <div id="shop-footer">
-                        <div style="color:#cccccc;font-size:12px;">Shop offerings rotate each time you reroll.</div>
-                        <div>
-                            <button id="shop-reroll">Reroll</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            // attach close
-            overlay.querySelector('#shop-close').addEventListener('click', () => this.hideShop());
-            overlay.querySelector('#shop-reroll').addEventListener('click', async () => {
-                if (shopController && typeof shopController.reroll === 'function') {
-                    this.emit('shopRerollRequested');
-                }
-            });
-        }
-
-        // populate items
-        const itemsEl = document.getElementById('shop-items');
-        const infoEl = document.getElementById('shop-info');
-        const balanceEl = document.getElementById('shop-balance');
-        itemsEl.innerHTML = '';
-        balanceEl.textContent = `Currency: ${Math.round(this.gameState.currency || 0)}`;
-
-        offerings.forEach(off => {
-            const card = document.createElement('div');
-            card.className = 'shop-card';
-            const statsList = (off.definesStats || []).map(s => `${s.name || s.id}`).join(', ');
-            const behaviors = (off.description || '').replace(/\n/g,' ');
-            card.innerHTML = `
-                <div class="name">${off.name}</div>
-                <div class="desc">${behaviors}</div>
-                <div class="meta">Cost: <span style="color:#ffff00">${off.cost}</span></div>
-                <div class="tags">${off.category ? off.category.toUpperCase() : ''} ${statsList ? ' • Adds: ' + statsList : ''}</div>
-                <button class="purchase">${off.cost ? `Buy (${off.cost})` : 'Buy'}</button>
-            `;
-            // show details on hover/click
-            card.addEventListener('mouseenter', () => {
-                infoEl.innerHTML = `<div style="color:#00ffff;font-weight:bold;">${off.name}</div>
-                                    <div style="margin-top:6px;color:#cccccc;">${off.description || ''}</div>
-                                    <div style="margin-top:8px;color:#ffff00;">Registers stats: ${statsList || '—'}</div>
-                                    <div style="margin-top:6px;color:#88ffff;">Dependencies: ${ (off.dependencies && off.dependencies.length) ? off.dependencies.join(', ') : 'None' }</div>`;
-            });
-
-            const btn = card.querySelector('button.purchase');
-            btn.addEventListener('click', () => {
-                // emit purchase intent; consumer (Game/ShopSystem) should handle validation
-                this.emit('shopPurchaseRequested', off.id);
-            });
-
-            // disable if insufficient funds
-            if ((this.gameState.currency || 0) < (off.cost || 0)) {
-                btn.disabled = true;
-            }
-
-            itemsEl.appendChild(card);
-        });
-
-        // show overlay
-        document.getElementById('shop-overlay').style.display = 'flex';
+        if (this.shopUI) this.shopUI.show(offerings, shopController);
     }
 
     hideShop() {
-        const overlay = document.getElementById('shop-overlay');
-        if (overlay) overlay.style.display = 'none';
-        // Resume game when shop closed
-        if (this.gameState) {
-            this.gameState.isPausedForLevelUp = false;
-            this.gameState.isShopVisible = false;
-        }
+        if (this.shopUI) this.shopUI.hide();
     }
 }

@@ -246,7 +246,7 @@ export class Game {
         // fallback behavior (existing)
         this.gameState.reset();
         this.gameState.isRunning = true;
-        this.uiManager.hideStartButton();
+        // legacy start button removed - UI entry handled by RunManager
         this.resetGame();
         this.sidePanelManager.updateSidePanels();
         this.gameLoopManager.start();
@@ -262,7 +262,7 @@ export class Game {
         // fallback
         this.gameState.reset();
         this.gameState.isRunning = true;
-        this.uiManager.hideRestartButton();
+        // legacy restart button removed - no-op
         this.resetGame();
         this.sidePanelManager.updateSidePanels();
         this.gameLoopManager.start();

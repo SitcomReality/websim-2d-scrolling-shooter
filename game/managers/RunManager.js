@@ -88,7 +88,7 @@ export class RunManager {
 
         // ensure game state marked running and UI reflects start
         if (this.game && this.game.gameState) this.game.gameState.isRunning = true;
-        if (this.game && this.game.uiManager) this.game.uiManager.hideStartButton();
+        if (this.game && this.game.uiManager) /* legacy start button removed - no-op */;
 
         // start game loop
         this.game.uiManager.update();
@@ -107,7 +107,7 @@ export class RunManager {
 
                 // mark running and update UI
                 if (this.game && this.game.gameState) this.game.gameState.isRunning = true;
-                if (this.game && this.game.uiManager) this.game.uiManager.hideStartButton();
+                if (this.game && this.game.uiManager) /* legacy start button removed - no-op */;
 
                 this.game.uiManager.update();
                 this.game.gameLoopManager.start();
