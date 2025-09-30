@@ -160,6 +160,14 @@ export class RunManager {
             if (this.game.powerUpSystem && typeof this.game.powerUpSystem.reset === 'function') this.game.powerUpSystem.powerUps = [];
             if (this.game.sidePanelManager && typeof this.game.sidePanelManager.updateSidePanels === 'function') this.game.sidePanelManager.updateSidePanels();
 
+            // Re-register player movement component with MovementSystem and restore bounds
+            try {
+                if (this.game.movementSystem && this.game.player && this.game.player.movementComponent && this.game.canvas) {
+                    this.game.movementSystem.registerEntity('player', this.game.player.movementComponent);
+                    this.game.movementSystem.setBounds('player', 0, this.game.canvas.width, 0, this.game.canvas.height);
+                }
+            } catch (e) { /* ignore */ }
+
             // Clear shop owned state if present (new run should start clean)
             if (this.game.shopSystem) {
                 // clear persisted owned and in-memory sets
