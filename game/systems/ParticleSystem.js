@@ -23,6 +23,29 @@ export class ParticleSystem {
     render(ctx) {
         this.particles.forEach(particle => particle.render(ctx));
     }
+
+    createSuction(x, y, intensity = 0.5) {
+        const count = Math.max(2, Math.round(6 * intensity));
+        const lifetime = 400 + Math.round(600 * intensity);
+
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 60 + Math.random() * 80 * (1 - intensity);
+            const sx = x + Math.cos(angle) * distance;
+            const sy = y + Math.sin(angle) * distance - 20;
+            const speed = 0.5 + intensity * 2.0 + Math.random() * 0.5;
+            this.particles.push(new SuctionParticle(sx, sy, x, y, speed, lifetime));
+        }
+    }
+    
+    spawnPowerUp() {
+        // Implementation for power-ups
+    }
+    
+    spawnHealthPickup(x, y) {
+        const healthAmount = 5; // Fixed amount
+        this.powerUps.push(new HealthPickup(x, y, healthAmount));
+    }
 }
 
 class Particle {
@@ -59,3 +82,55 @@ class Particle {
     }
 }
 
+class SuctionParticle {
+    constructor(x, y, targetX, targetY, speed = 1, lifetime = 800) {
+        this.x = x;
+        this.y = y;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.speed = speed;
+        this.lifetime = lifetime;
+        this.maxLifetime = lifetime;
+        this.alive = true;
+        this.size = 2 + Math.random() * 3;
+        this.color = `rgba(0, 200, 255, ${0.6 + Math.random() * 0.4})`;
+        this.vx = 0;
+        this.vy = 0;
+    }
+
+    update(deltaTime) {
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const accel = (this.speed * (1 + (1 - (this.lifetime / this.maxLifetime)))) * (deltaTime / 16);
+
+        this.vx += (dx / dist) * accel;
+        this.vy += (dy / dist) * accel;
+
+        this.vx *= 0.98;
+        this.vy *= 0.98;
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        this.lifetime -= deltaTime;
+        if (this.lifetime <= 0) this.alive = false;
+
+        if (Math.hypot(this.targetX - this.x, this.targetY - this.y) < 6) {
+            this.alive = false;
+        }
+    }
+
+    render(ctx) {
+        const alpha = Math.max(0, this.lifetime / this.maxLifetime);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}

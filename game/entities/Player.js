@@ -49,6 +49,27 @@ export class Player extends Entity {
         // Update entity position from movement component
         this.x = this.movementComponent.position.x;
         this.y = this.movementComponent.position.y;
+
+        // Spawn suction particles while charging to provide visual feedback
+        try {
+            if (this.chargeComponent && this.chargeComponent.isCharging && this.chargeComponent.isCharging()) {
+                const progress = this.chargeComponent.getChargeProgress ? this.chargeComponent.getChargeProgress() : 0.0;
+                const intensity = Math.min(1, Math.max(0, progress)); // 0..1
+                if (window.gameInstance && window.gameInstance.particleSystem) {
+                    // throttle spawn frequency by only spawning occasionally based on timestamp
+                    const now = Date.now();
+                    this._lastSuctionSpawn = this._lastSuctionSpawn || 0;
+                    const spawnInterval = 80 - Math.round(60 * intensity); // more intense = more frequent
+                    if (now - this._lastSuctionSpawn > spawnInterval) {
+                        window.gameInstance.particleSystem.createSuction(this.x, this.y - 6, intensity);
+                        this._lastSuctionSpawn = now;
+                    }
+                }
+            }
+        } catch (e) {
+            // Fail silently to avoid breaking game if particle system not present
+            // console.warn('Suction particle spawn failed', e);
+        }
     }
 
     takeDamage(amount) {
