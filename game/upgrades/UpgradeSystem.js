@@ -9,9 +9,7 @@ import { UtilityUpgrade } from './types/UtilityUpgrade.js';
 import { LuckUpgrade } from './types/LuckUpgrade.js';
 import { CriticalChanceUpgrade } from './types/CriticalChanceUpgrade.js';
 import { CriticalDamageUpgrade } from './types/CriticalDamageUpgrade.js';
-import { PiercingUpgrade } from './types/PiercingUpgrade.js';
-import { ChainUpgrade } from './types/ChainUpgrade.js';
-import { RicochetUpgrade } from './types/RicochetUpgrade.js';
+/* ...mechanical upgrades transitioned to shop ItemFactory; removed direct imports... */
 import { UpgradeGenerator } from './UpgradeGenerator.js';
 import { UpgradeCardCreator } from './UpgradeCardCreator.js';
 import { RerollSystem } from './RerollSystem.js';
@@ -31,9 +29,7 @@ export class UpgradeSystem {
             new LuckUpgrade(),
             new CriticalChanceUpgrade(),
             new CriticalDamageUpgrade(),
-            new PiercingUpgrade(),
-            new ChainUpgrade(),
-            new RicochetUpgrade()
+            // mechanical/weapon-mod upgrades (piercing/chain/ricochet/etc.) are now shop items via ItemFactory
         ];
 
         this.playerUpgrades = new Map();
