@@ -87,17 +87,36 @@ export class Player extends Entity {
             upgradeWeight: 0.2
         });
 
+        // NEW: charging stats (moved from accidental file into entities/Player)
+        this.statSystem.registerStat({
+            id: 'chargeSpeed',
+            name: 'Charge Speed',
+            baseValue: 1.0,
+            description: 'Multiplier for how fast charge accrues relative to fire rate',
+            category: 'utility',
+            upgradeWeight: 0.3
+        });
+        this.statSystem.registerStat({
+            id: 'maxCharge',
+            name: 'Max Charge',
+            baseValue: 5,
+            description: 'Maximum stored projectiles from charging',
+            category: 'utility',
+            upgradeWeight: 0.4
+        });
+
         // Initialize components
         this.healthComponent = new HealthComponent(100);
         this.movementComponent = new MovementComponent(5);
         this.weaponComponent = new WeaponComponent(weaponFactory, 'single', { damage: 1, fireRate: 150 });
         this.statsComponent = new PlayerStatsComponent();
 
-        // Charge component — exposed for upgrades / UI to query
+        // Charge component — derive parameters from statSystem (chargeSpeed & maxCharge)
         this.chargeComponent = new ChargeComponent({
             maxChargeTime: 5000,
-            maxStoredShots: 20,
-            chargeRate: 1
+            maxStoredShots: this.statSystem.getStatValue('maxCharge') || 5,
+            chargeRate: 1,
+            statSystem: this.statSystem
         });
 
         // Wire weapon component's charge component to the player's so upgrades can modify centrally
