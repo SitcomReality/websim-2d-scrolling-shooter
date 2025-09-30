@@ -67,8 +67,25 @@ export class WeaponComponent {
     }
 
     update(deltaTime, inputState, position) {
-        if (inputState.shoot && this.currentWeapon) {
-            this.currentWeapon.fire(position);
+        // If player is holding shoot (Space) we enter a charging state and do not fire.
+        if (inputState.shoot) {
+            if (!this.isCharging) {
+                this.isCharging = true;
+                this.chargeStartTime = Date.now();
+                this.chargedBullets = this.chargedBullets || 0;
+                this.maxChargeTime = this.maxChargeTime || 2000;
+            }
+            // Do not fire while charging
+        } else {
+            // Exit charging state
+            if (this.isCharging) {
+                this.isCharging = false;
+                this.chargeStartTime = 0;
+            }
+            // Auto-fire when not charging; weapon.fire respects its own fireRate
+            if (this.currentWeapon) {
+                this.currentWeapon.fire(position);
+            }
         }
 
         if (this.currentWeapon) {
