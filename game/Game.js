@@ -21,6 +21,7 @@ import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
 import { UtilityUpgrade } from './upgrades/types/UtilityUpgrade.js';
 import { LuckUpgrade } from './upgrades/types/LuckUpgrade.js';
 import { SynergySystem } from './systems/SynergySystem.js';
+import { RunManager } from './managers/RunManager.js';
 
 export class Game {
     constructor() {
@@ -54,6 +55,9 @@ export class Game {
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
         this.statShopManager = new StatShopManager(this.gameState, this.player);
+
+        // instantiate RunManager early so it can present the run screen before play
+        this.runManager = new RunManager(this);
 
         // dynamic import to avoid load-order issues — initialize asynchronously
         import('./shop/ShopSystem.js').then(mod => {
@@ -106,6 +110,13 @@ export class Game {
         this.movementSystem.setBounds('player', 0, this.canvas.width, 0, this.canvas.height);
         
         this.bindEvents();
+
+        // Show run menu at startup (do not auto-start the loop)
+        try {
+            this.runManager.show();
+        } catch (e) {
+            console.warn('Failed to show RunManager', e);
+        }
     }
     
     bindEvents() {
@@ -218,6 +229,13 @@ export class Game {
     }
     
     startGame() {
+        // Use RunManager to start a fresh run (ensures full reset & no stat bleed)
+        if (this.runManager) {
+            this.runManager.startNewRun();
+            return;
+        }
+
+        // fallback behavior (existing)
         this.gameState.reset();
         this.gameState.isRunning = true;
         this.uiManager.hideStartButton();
@@ -227,6 +245,13 @@ export class Game {
     }
     
     restartGame() {
+        // When restarting mid-session, treat as new run (clear saved run)
+        if (this.runManager) {
+            this.runManager.startNewRun();
+            return;
+        }
+
+        // fallback
         this.gameState.reset();
         this.gameState.isRunning = true;
         this.uiManager.hideRestartButton();
@@ -313,6 +338,19 @@ export class Game {
         if (this.gameState.health <= 0) {
             this.gameState.isRunning = false;
             this.uiManager.showGameOver();
+
+            // Stop loop and show run menu marking saved run ended
+            try {
+                if (this.runManager) {
+                    this.runManager.showAfterGameOver();
+                } else {
+                    // fallback: stop loop
+                    this.gameLoopManager.stop();
+                    this.runManager && this.runManager.show();
+                }
+            } catch (e) {
+                console.warn('Error handling game over run flow', e);
+            }
         }
         
         // Check power-up collisions

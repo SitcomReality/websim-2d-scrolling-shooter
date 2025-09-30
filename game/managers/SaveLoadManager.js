@@ -57,6 +57,13 @@ export class SaveLoadManager {
         }
     }
 
+    // Add a helper to clear saved run (used by RunManager new run)
+    clearSavedRun() {
+        try {
+            localStorage.removeItem(this.storageKey);
+        } catch (e) { /* ignore */ }
+    }
+
     _serializeStatSystem() {
         if (!this.statSystem || typeof this.statSystem.getAllStats !== 'function') return null;
         const all = this.statSystem.getAllStats();
