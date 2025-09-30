@@ -172,6 +172,14 @@ export class Game {
                 if (info) info.textContent = `Reroll failed: ${res.reason || 'insufficient funds'}`;
             }
         });
+        
+        // Dev: grant currency quickly for testing
+        this.uiManager.on('devGiveCurrency', () => {
+            if (this.gameState) {
+                this.gameState.currency = (this.gameState.currency || 0) + 1000;
+                if (this.uiManager) this.uiManager.update();
+            }
+        });
     }
     
     handleReroll() {

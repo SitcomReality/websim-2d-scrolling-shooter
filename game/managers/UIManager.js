@@ -37,8 +37,10 @@ export class UIManager extends EventEmitter {
         });
         
         const openShopBtn = document.getElementById('open-shop-btn');
-        if (openShopBtn) {
-            openShopBtn.addEventListener('click', () => this.emit('openStatShop'));
+        // Dev helper: give currency (replaces legacy open-shop dev button)
+        const giveCurrencyBtn = document.getElementById('give-currency-btn');
+        if (giveCurrencyBtn) {
+            giveCurrencyBtn.addEventListener('click', () => this.emit('devGiveCurrency'));
         }
         
         // Dev panel events
