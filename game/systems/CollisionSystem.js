@@ -7,6 +7,17 @@ export class CollisionSystem {
         this.damageTextSystem = new DamageTextSystem();
     }
     
+    // Helper: bullets are plain objects so provide bounding-box collision check
+    bulletIntersectsEntity(bullet, entity) {
+        const bLeft = bullet.x - (bullet.width || 2) / 2;
+        const bRight = bullet.x + (bullet.width || 2) / 2;
+        const bTop = bullet.y - (bullet.height || 8) / 2;
+        const bBottom = bullet.y + (bullet.height || 8) / 2;
+
+        const e = entity.getBounds();
+        return bLeft < e.right && bRight > e.left && bTop < e.bottom && bBottom > e.top;
+    }
+    
     checkCollisions(player, enemies, playerBullets, particleSystem, powerUpSystem) {
         this.scoreGained = 0;
         this.damageTaken = 0;
@@ -16,7 +27,7 @@ export class CollisionSystem {
             const bullet = playerBullets[i];
             for (let j = enemies.length - 1; j >= 0; j--) {
                 const enemy = enemies[j];
-                if (bullet.intersects(enemy)) {
+                if (this.bulletIntersectsEntity(bullet, enemy)) {
                     const damage = bullet.damage || 1;
                     
                     // Handle piercing
@@ -73,7 +84,7 @@ export class CollisionSystem {
             const enemyBullets = enemy.getBullets();
             for (let i = enemyBullets.length - 1; i >= 0; i--) {
                 const bullet = enemyBullets[i];
-                if (bullet.intersects(player) && !player.invulnerable) {
+                if (this.bulletIntersectsEntity(bullet, player) && !player.invulnerable) {
                     bullet.alive = false;
                     enemyBullets.splice(i, 1);
                     const damage = 10;
