@@ -21,6 +21,36 @@ export class FireRateUpgrade extends BaseUpgrade {
     
     apply(player, values) {
         const multiplier = values.fireRateMultiplier || values.fireRate || values[this.id] || values.common;
+
+        // Prefer central StatSystem as single source of truth
+        try {
+            const statSystem = player && player.statSystem ? player.statSystem : null;
+            if (statSystem && typeof statSystem.getDefinition === 'function') {
+                const def = statSystem.getDefinition('fireRate');
+                if (def) {
+                    // Adjust the registered base value by multiplier
+                    const currentBase = def.baseValue || statSystem.getStatValue('fireRate') || 150;
+                    statSystem.setBaseValue('fireRate', currentBase * multiplier);
+                } else {
+                    // Register stat if somehow missing, then apply multiplier
+                    statSystem.registerStat({
+                        id: 'fireRate',
+                        name: 'Fire Rate',
+                        baseValue: 150,
+                        description: 'Milliseconds between shots',
+                        category: 'offensive',
+                        upgradeWeight: 0.6
+                    });
+                    statSystem.setBaseValue('fireRate', (statSystem.getStatValue('fireRate') || 150) * multiplier);
+                }
+                return;
+            }
+        } catch (e) {
+            // fall through to legacy fallback if statSystem operations fail
+            console.warn('FireRateUpgrade: statSystem apply failed, falling back', e);
+        }
+
+        // Legacy fallback for systems still reading player.fireRate directly
         player.fireRate = (player.fireRate || 150) * multiplier;
     }
     
