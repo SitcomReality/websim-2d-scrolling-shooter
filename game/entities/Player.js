@@ -3,6 +3,7 @@ import { HealthComponent } from '../components/HealthComponent.js';
 import { MovementComponent } from '../components/MovementComponent.js';
 import { WeaponComponent } from '../components/WeaponComponent.js';
 import { PlayerStatsComponent } from '../components/PlayerStatsComponent.js';
+import ChargeComponent from '../components/ChargeComponent.js';
 
 export class Player extends Entity {
     constructor(x, y, weaponFactory) {
@@ -13,6 +14,17 @@ export class Player extends Entity {
         this.movementComponent = new MovementComponent(5);
         this.weaponComponent = new WeaponComponent(weaponFactory, 'single', { damage: 1, fireRate: 150 });
         this.statsComponent = new PlayerStatsComponent();
+
+        // Charge component — exposed for upgrades / UI to query
+        this.chargeComponent = new ChargeComponent({
+            maxChargeTime: 5000,
+            maxStoredShots: 20,
+            chargeRate: 1
+        });
+
+        // Wire weapon component's charge component to the player's so upgrades can modify centrally
+        // (weapon component already instantiates its own ChargeComponent; keep player component as authoritative)
+        this.weaponComponent.chargeComponent = this.chargeComponent;
 
         // Set initial position
         this.movementComponent.setPosition(x, y);
@@ -31,8 +43,8 @@ export class Player extends Entity {
             this.weaponComponent.update(deltaTime, inputState, this.movementComponent.position);
         }
 
-        // Always update bullets
-        this.weaponComponent.update(deltaTime, inputState, this.movementComponent.position);
+        // Always update bullets (weaponComponent handles this)
+        // this.weaponComponent.update(deltaTime, inputState, this.movementComponent.position); // already called above
 
         // Update entity position from movement component
         this.x = this.movementComponent.position.x;
@@ -216,5 +228,8 @@ export class Player extends Entity {
         this.weaponComponent.clearBullets();
         this.alive = true;
         this.statsComponent.setInvulnerable(false);
+
+        // reset charge state
+        if (this.chargeComponent) this.chargeComponent.reset();
     }
 }
