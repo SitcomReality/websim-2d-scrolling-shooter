@@ -137,6 +137,11 @@ function clearErrorLog() {
     console.log('✅ Error log cleared');
 }
 
+// Make functions globally accessible
+window.runImportDiagnostics = runImportDiagnostics;
+window.showDetailedDiagnostics = showDetailedDiagnostics;
+window.clearErrorLog = clearErrorLog;
+
 // Enhanced error handler
 window.addEventListener('error', (event) => {
     console.error('❌ Global error caught:', event.message);
@@ -167,8 +172,10 @@ window.addEventListener('unhandledrejection', (event) => {
 // Auto-run diagnostics when page loads
 window.addEventListener('load', () => {
     setTimeout(() => {
-        console.log('💡 Run window.runImportDiagnostics() in console for detailed diagnostics');
-        console.log('💡 Run window.showDetailedDiagnostics() for network analysis');
+        console.log('💡 Available diagnostic functions:');
+        console.log('   window.runImportDiagnostics() - Check for import errors');
+        console.log('   window.showDetailedDiagnostics() - Show detailed network analysis');
+        console.log('   window.clearErrorLog() - Clear cached error logs');
         
         // Auto-run if in development
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
