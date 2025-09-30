@@ -112,6 +112,17 @@ export class WeaponComponent {
         }
     }
 
+    setChain(count, range = 100, damageReduction = 0.7) {
+        if (this.currentWeapon && typeof this.currentWeapon.setChain === 'function') {
+            this.currentWeapon.setChain(count, range, damageReduction);
+        } else if (this.currentWeapon) {
+            // provide best-effort support for fallback weapon objects
+            this.currentWeapon.chain = count;
+            this.currentWeapon.chainRange = range;
+            this.currentWeapon.chainDamageReduction = damageReduction;
+        }
+    }
+
     getBullets() {
         return this.currentWeapon ? this.currentWeapon.getBullets() : [];
     }
