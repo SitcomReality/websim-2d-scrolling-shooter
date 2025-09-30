@@ -9,6 +9,9 @@ export default class ShopUI {
         this.offerings = offerings || [];
         this.shopController = shopController;
 
+        // Pause the game while shop is visible
+        if (this.gameState) { this.gameState.isPausedForLevelUp = true; this.gameState.isShopVisible = true; }
+
         if (!document.getElementById(this.overlayId)) {
             const overlay = document.createElement('div');
             overlay.id = this.overlayId;
@@ -97,6 +100,7 @@ export default class ShopUI {
         const overlay = document.getElementById(this.overlayId);
         if (overlay) overlay.style.display = 'none';
         if (this.gameState) {
+            // Unpause when shop closed
             this.gameState.isPausedForLevelUp = false;
             this.gameState.isShopVisible = false;
         }
