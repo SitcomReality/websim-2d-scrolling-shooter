@@ -14,7 +14,7 @@ import { LevelUpManager } from './managers/LevelUpManager.js';
 import { StatShopManager } from './managers/StatShopManager.js';
 import { SaveLoadManager } from './managers/SaveLoadManager.js';
 import { WeaponFactory } from './weapons/WeaponFactory.js';
-import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
+// import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
 import { MovementSystem } from './systems/MovementSystem.js';
 import { UtilitySystem } from './systems/UtilitySystem.js';
 import { MovementUpgrade } from './upgrades/types/MovementUpgrade.js';
