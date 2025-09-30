@@ -45,7 +45,11 @@ export class UpgradeGenerator {
             this.proceduralGenerator = new ProceduralUpgradeSystem();
         }
 
-        const proceduralData = this.proceduralGenerator.generator.generateUpgrade(playerLevel, luck);
+        // supply deterministic seed and player's statSystem if available
+        const seed = (window.gameInstance && window.gameInstance.gameState && window.gameInstance.gameState.shopSeed) ? window.gameInstance.gameState.shopSeed : Date.now();
+        const statSystem = (window.gameInstance && window.gameInstance.player && window.gameInstance.player.statSystem) ? window.gameInstance.player.statSystem : null;
+
+        const proceduralData = this.proceduralGenerator.generator.generateUpgrade(playerLevel, luck, seed, statSystem);
         const proceduralUpgrade = new ProceduralUpgradeSystem({
             proceduralData: proceduralData
         });

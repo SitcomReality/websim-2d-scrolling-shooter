@@ -107,18 +107,88 @@ export class ProceduralUpgradeGenerator {
         });
     }
 
-    generateUpgrade(playerLevel, luck = 1.0) {
-        // Select a random template
-        const templates = Array.from(this.upgradeTemplates.values());
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    // new small LCG for deterministic behavior when seed provided
+    _lcg(seed = 1) {
+        let state = seed >>> 0;
+        return {
+            next() {
+                state = (1664525 * state + 1013904223) >>> 0;
+                return state / 0xFFFFFFFF;
+            },
+            nextRange(min, max) {
+                return Math.floor(this.next() * (max - min + 1)) + min;
+            },
+            pick(array) {
+                if (!array || array.length === 0) return null;
+                return array[this.nextRange(0, array.length - 1)];
+            }
+        };
+    }
 
-        // Determine rarity based on player level and luck
+    // signature now accepts optional seed and statSystem to generate dynamic stat-based upgrades
+    generateUpgrade(playerLevel, luck = 1.0, seed = null, statSystem = null) {
+        // deterministic RNG: prefer provided seed, else fallback to time-based
+        const seedInt = seed ? (typeof seed === 'number' ? Math.floor(seed) : String(seed).split('').reduce((a,c)=>a+c.charCodeAt(0),0)) : (Date.now() & 0x7fffffff);
+        const rng = this._lcg(seedInt + Math.floor(playerLevel * 997) + Math.floor((luck-1)*1000));
+
+        // If a statSystem is provided, try to produce a stat-based procedural upgrade
+        let statBased = null;
+        try {
+            if (statSystem && typeof statSystem.getUpgradableStats === 'function') {
+                const allUpgradable = statSystem.getUpgradableStats(); // array of stat defs
+                // filter and weight by upgradeWeight and category balance
+                const pool = [];
+                const categoryCounts = {};
+                allUpgradable.forEach(s => {
+                    const weight = Math.max(0, s.upgradeWeight || 0.01);
+                    // push the stat into pool proportional to weight (clamped)
+                    const entries = Math.max(1, Math.floor(weight * 10));
+                    for (let i=0;i<entries;i++) pool.push(s);
+                });
+
+                // avoid offering too many from same category - we will cap usage per generation
+                const maxDynamicPerCard = 2;
+                if (pool.length > 0) {
+                    // pick one template stat for this upgrade
+                    const picked = rng.pick(pool);
+                    if (picked) {
+                        // create a values object either flat or percent depending on stat typical scale
+                        const base = picked.baseValue || 1;
+                        // decide flat vs percent variety
+                        const usePercent = (picked.baseValue !== 0) && Math.abs(picked.baseValue) < 1 && rng.next() > 0.5;
+                        const magnitude = usePercent ? (0.05 + rng.next() * 0.15) : Math.max( (base * 0.2), (base >= 1 ? Math.round(Math.max(1, base * (0.2 + rng.next()*0.6))) : 1) );
+                        const key = picked.id;
+                        const values = {};
+                        values[key] = usePercent ? Number((magnitude).toFixed(3)) : Number((magnitude).toFixed(2));
+
+                        statBased = {
+                            id: `${picked.id}_proc_${Date.now().toString(36)}_${Math.floor(rng.next()*1000)}`,
+                            name: `${picked.name} Boost`,
+                            description: `Improves ${picked.name} (${picked.category || 'stat'})`,
+                            icon: picked.icon || '⭐',
+                            category: picked.category || 'dynamic',
+                            rarity: this.rollRarity(playerLevel, luck),
+                            values,
+                            templateId: picked.id
+                        };
+                    }
+                }
+            }
+        } catch (e) {
+            // if stat-based path fails, fall back to template-based
+            statBased = null;
+        }
+
+        if (statBased) return statBased;
+
+        // fallback to original random template behavior (unchanged)
+        const templates = Array.from(this.upgradeTemplates.values());
+        const template = templates[Math.floor(rng.next() * templates.length)];
+
         const rarity = this.rollRarity(playerLevel, luck);
 
-        // Calculate values based on template and rarity
         const values = this.calculateValues(template, rarity, playerLevel);
 
-        // Create unique ID
         const upgradeId = `${template.name.toLowerCase().replace(/\s+/g, '')}_${Date.now()}`;
 
         return {
@@ -132,6 +202,49 @@ export class ProceduralUpgradeGenerator {
             maxLevel: template.maxLevel,
             templateId: template.name.toLowerCase().replace(/\s+/g, '')
         };
+    }
+
+    // generateChoices now can accept optional statSystem, seed and respects cap on dynamic stats per offering
+    generateUpgradeChoices(playerLevel, count = 3, luck = 1.0, seed = null, statSystem = null) {
+        const choices = [];
+        const usedTemplates = new Set();
+
+        // deterministic RNG for the choice set
+        const seedInt = seed ? (typeof seed === 'number' ? Math.floor(seed) : String(seed).split('').reduce((a,c)=>a+c.charCodeAt(0),0)) : (Date.now() & 0x7fffffff);
+        const rng = this._lcg(seedInt + playerLevel * 7919 + Math.floor((luck-1)*100));
+
+        const dynamicCap = Math.min(2, count - 1); // at most 2 dynamic stats per offering
+        let dynamicCount = 0;
+
+        for (let i = 0; i < count; i++) {
+            let upgrade = null;
+
+            // try to produce a dynamic/stat-based upgrade when we haven't hit cap and statSystem exists
+            if (statSystem && dynamicCount < dynamicCap && rng.next() < 0.6) {
+                const statUpgrade = this.generateUpgrade(playerLevel, luck, seedInt + i, statSystem);
+                if (statUpgrade && statUpgrade.templateId && statUpgrade.templateId.startsWith(statUpgrade.templateId)) {
+                    choices.push({ upgrade: new (function(){return { isProcedural:true, getDescription:()=>statUpgrade.description, id: statUpgrade.id, name: statUpgrade.name, getValues:()=>statUpgrade.values, isDynamic:true }} )(), rarity: statUpgrade.rarity, values: statUpgrade.values });
+                    dynamicCount++;
+                    continue;
+                }
+            }
+
+            // else fall back to earlier generate flow
+            let attempts = 0;
+            let candidate = null;
+            while (attempts < 8 && !candidate) {
+                attempts++;
+                const maybe = this.generateUpgrade(playerLevel, luck, seedInt + i + attempts);
+                if (!usedTemplates.has(maybe.templateId)) {
+                    candidate = maybe;
+                }
+            }
+            if (!candidate) candidate = this.generateUpgrade(playerLevel, luck, seedInt + i);
+            usedTemplates.add(candidate.templateId || candidate.id);
+            choices.push({ upgrade: new (function(){return { isProcedural:true, getDescription:()=>candidate.description, id: candidate.id, name: candidate.name, getValues:()=>candidate.values }} )(), rarity: candidate.rarity, values: candidate.values });
+        }
+
+        return choices;
     }
 
     rollRarity(playerLevel, luck) {
@@ -195,27 +308,6 @@ export class ProceduralUpgradeGenerator {
         return {
             [template.name.toLowerCase().replace(/\s+/g, '')]: finalValue
         };
-    }
-
-    generateUpgradeChoices(playerLevel, count = 3, luck = 1.0) {
-        const choices = [];
-        const usedTemplates = new Set();
-
-        for (let i = 0; i < count; i++) {
-            let upgrade = this.generateUpgrade(playerLevel, luck);
-
-            // Ensure we don't get duplicate templates in the same selection
-            let attempts = 0;
-            while (usedTemplates.has(upgrade.templateId) && attempts < 10) {
-                upgrade = this.generateUpgrade(playerLevel, luck);
-                attempts++;
-            }
-
-            usedTemplates.add(upgrade.templateId);
-            choices.push(upgrade);
-        }
-
-        return choices;
     }
 
     getRarityColor(rarity) {
