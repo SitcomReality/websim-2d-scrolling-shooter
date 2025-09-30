@@ -25,10 +25,9 @@ export class WeaponComponent {
         });
 
         // Exposed charging state for UI / Player render
-        this.isCharging = false;
+        // No duplicated state here — ChargeComponent is authoritative.
         this.chargedBullets = 0;
-        this.chargeStartTime = 0;
-        this.maxChargeTime = this.chargeComponent ? this.chargeComponent.base.maxChargeTime : (config.maxChargeTime || 5000);
+        this.maxChargeTime = this.chargeComponent.base.maxChargeTime || (config.maxChargeTime || 5000);
     }
 
     createFallbackWeapon(weaponType, config = {}) {
@@ -82,55 +81,39 @@ export class WeaponComponent {
     }
 
     update(deltaTime, inputState, position) {
-        // Charging behaviour delegated to ChargeComponent.
-        // Start/stop charging based on inputState.shoot
+        // Delegate charging controls to ChargeComponent entirely.
         if (inputState.shoot) {
+            // start charging if not already
             if (!this.chargeComponent.isCharging()) {
                 this.chargeComponent.startCharging();
-                this.isCharging = true;
-                this.chargeStartTime = Date.now();
-                this.maxChargeTime = this.chargeComponent.base.maxChargeTime;
             }
         } else {
-            // If we were charging and release occurs, release burst
+            // on release, stopCharging returns release data when shots are released
             if (this.chargeComponent.isCharging()) {
                 const release = this.chargeComponent.stopCharging();
-                this.isCharging = false;
-                this.chargedBullets = 0;
-                this.chargeStartTime = 0;
                 if (release && this.currentWeapon) {
-                    // release.count projectiles in ~180deg spread centered forward (0,-1)
-                    const forward = { x: 0, y: -1 };
                     const count = release.count;
                     for (let i = 0; i < count; i++) {
-                        // random angle between -90deg and +90deg (radians)
                         const angle = (Math.random() * Math.PI) - (Math.PI / 2);
-                        const dir = {
-                            x: Math.sin(angle),
-                            y: -Math.cos(angle)
-                        };
-                        // normalize
+                        const dir = { x: Math.sin(angle), y: -Math.cos(angle) };
                         const len = Math.hypot(dir.x, dir.y) || 1;
                         dir.x /= len; dir.y /= len;
                         const proj = this._createProjectileFromWeapon(position, dir);
-                        // give a brief velocity jitter for burst feel
                         proj.vx += (Math.random() - 0.5) * 1.5;
                         proj.vy += (Math.random() - 0.5) * 1.5;
-                        // ensure bullets array exists
                         if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
                         this.currentWeapon.bullets.push(proj);
                     }
-                    // Ensure weapon's update loop will manage the new bullets
                 }
             } else {
-                // Not charging: auto-fire as normal
+                // not charging: normal auto-fire
                 if (this.currentWeapon) {
                     this.currentWeapon.fire(position);
                 }
             }
         }
 
-        // Allow auto-release via chargeComponent.update (e.g. max time reached)
+        // process auto-release (e.g. max charge timeout) from ChargeComponent
         const autoRelease = this.chargeComponent.update();
         if (autoRelease && this.currentWeapon) {
             const count = autoRelease.count;
@@ -145,23 +128,18 @@ export class WeaponComponent {
                 if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
                 this.currentWeapon.bullets.push(proj);
             }
-            // if the player is still holding shoot, charging restarts automatically
+            // if still holding shoot, restart charging automatically
             if (inputState.shoot) {
                 this.chargeComponent.startCharging();
-                this.isCharging = true;
-                this.chargeStartTime = Date.now();
-            } else {
-                this.isCharging = false;
-                this.chargeStartTime = 0;
             }
         }
 
-        // Update exposed chargedBullets count for UI feedback
+        // Update exposed charged bullets count for UI feedback
         this.chargedBullets = this.chargeComponent.getStoredShots();
 
-        if (this.currentWeapon) {
-            this.currentWeapon.update(deltaTime);
-        }
+         if (this.currentWeapon) {
+             this.currentWeapon.update(deltaTime);
+         }
     }
 
     switchWeapon(weaponType, config = {}) {
