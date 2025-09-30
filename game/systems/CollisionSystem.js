@@ -59,7 +59,7 @@ export class CollisionSystem {
                     
                     // Handle chaining
                     if (bullet.chain > 0 && bullet.remainingChains > 0) {
-                        this.handleChaining(bullet, enemy, enemies, playerBullets);
+                        this.handleChaining(bullet, enemy, enemies, playerBullets, particleSystem, player);
                     }
                     
                     if (bullet.piercing <= 0 && bullet.chain <= 0) break;
@@ -96,7 +96,7 @@ export class CollisionSystem {
         });
     }
     
-    handleChaining(bullet, hitEnemy, enemies, playerBullets) {
+    handleChaining(bullet, hitEnemy, enemies, playerBullets, particleSystem, player) {
         bullet.remainingChains--;
         
         const nearbyEnemies = enemies.filter(enemy => {
@@ -115,13 +115,15 @@ export class CollisionSystem {
             const target = nearbyEnemies[0];
             const chainDamage = bullet.damage * bullet.chainDamageReduction;
             
-            if (enemy.takeDamage(chainDamage)) {
+            if (target.takeDamage(chainDamage)) {
                 const enemyIndex = enemies.indexOf(target);
                 if (enemyIndex > -1) {
                     enemies.splice(enemyIndex, 1);
                     this.scoreGained += target.points;
-                    this.gameState.xp += target.points;
-                    particleSystem.createExplosion(target.x, target.y);
+                    if (this.gameState) this.gameState.xp += target.points;
+                    if (particleSystem && typeof particleSystem.createExplosion === 'function') {
+                        particleSystem.createExplosion(target.x, target.y);
+                    }
                     
                     const xpAmount = target.points;
                     this.damageTextSystem.addXP(target.x, target.y + 20, xpAmount);
