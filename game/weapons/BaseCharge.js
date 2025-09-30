@@ -1,8 +1,11 @@
 export class BaseCharge {
     constructor(config = {}) {
-        this.maxChargeTime = config.maxChargeTime || 5000; // ms
+        // maxChargeTime is no longer the authoritative limit for stored shots;
+        // maxStoredShots is used to determine when charge is 'full'
+        this.maxChargeTime = config.maxChargeTime || 5000; // kept for backward compatibility (auto-release fallback)
         this.maxStoredShots = config.maxStoredShots || 20;
-        this.chargeRate = config.chargeRate || 1; // shots per 100ms equivalent scale
+        // chargeRate: how many "stored shots" accrue per 100ms
+        this.chargeRate = config.chargeRate || 1;
         this.reset();
     }
 
@@ -34,7 +37,7 @@ export class BaseCharge {
         const elapsed = now - this.chargeStart;
         const sinceAccrual = now - this.lastAccrual;
 
-        // Accrue stored shots over time (simple linear accrual)
+        // Accrue stored shots over time using chargeRate (shots per 100ms)
         if (sinceAccrual >= 100) {
             const accrualCount = Math.floor((sinceAccrual / 100) * this.chargeRate);
             if (accrualCount > 0) {
@@ -43,8 +46,8 @@ export class BaseCharge {
             }
         }
 
-        // Auto-release if max time reached
-        if (elapsed >= this.maxChargeTime) {
+        // Auto-release if max time reached (fallback), or if we've reached maxStoredShots
+        if (elapsed >= this.maxChargeTime || this.storedShots >= this.maxStoredShots) {
             return this.release();
         }
 
@@ -53,10 +56,9 @@ export class BaseCharge {
 
     release() {
         if (!this.isCharging && this.storedShots === 0) return null;
-        const shots = Math.max(1, this.storedShots); // ensure at least one if something stored
+        const shots = Math.max(1, this.storedShots); // ensure at least one
         const result = {
-            count: shots,
-            // clears stored on release; caller receives count and handles projectile creation
+            count: shots
         };
         // clear stored shots
         this.storedShots = 0;
@@ -72,7 +74,8 @@ export class BaseCharge {
 
     getChargeProgress() {
         if (!this.isCharging) return 0;
-        return Math.min(1, (Date.now() - this.chargeStart) / this.maxChargeTime);
+        // progress relative to maxStoredShots (0..1)
+        return Math.min(1, this.storedShots / Math.max(1, this.maxStoredShots));
     }
 }
 
