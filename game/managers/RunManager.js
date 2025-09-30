@@ -85,6 +85,11 @@ export class RunManager {
         this._fullReset();
         this.runActive = true;
         this.hide();
+
+        // ensure game state marked running and UI reflects start
+        if (this.game && this.game.gameState) this.game.gameState.isRunning = true;
+        if (this.game && this.game.uiManager) this.game.uiManager.hideStartButton();
+
         // start game loop
         this.game.uiManager.update();
         this.game.gameLoopManager.start();
@@ -99,6 +104,11 @@ export class RunManager {
                 this._postLoadReinit();
                 this.runActive = true;
                 this.hide();
+
+                // mark running and update UI
+                if (this.game && this.game.gameState) this.game.gameState.isRunning = true;
+                if (this.game && this.game.uiManager) this.game.uiManager.hideStartButton();
+
                 this.game.uiManager.update();
                 this.game.gameLoopManager.start();
                 return;
