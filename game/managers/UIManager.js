@@ -200,6 +200,9 @@ export class UIManager extends EventEmitter {
     // Shop UI helpers (Phase 4)
     showShop(offerings = [], shopController = null) {
         // shopController expected to provide methods: purchase(itemId) and reroll()
+        // Pause game while shop visible
+        if (this.gameState) this.gameState.isPausedForLevelUp = true;
+        
         if (!document.getElementById('shop-overlay')) {
             const overlay = document.createElement('div');
             overlay.id = 'shop-overlay';
@@ -287,5 +290,7 @@ export class UIManager extends EventEmitter {
     hideShop() {
         const overlay = document.getElementById('shop-overlay');
         if (overlay) overlay.style.display = 'none';
+        // Resume game when shop closed
+        if (this.gameState) this.gameState.isPausedForLevelUp = false;
     }
 }
