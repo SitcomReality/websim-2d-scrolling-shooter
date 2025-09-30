@@ -1,4 +1,4 @@
-import { Enemy } from '../../entities/Enemy.js';
+import { Enemy } from '../entities/Enemy.js';
 
 export class EnemySpawner {
     constructor(canvas) {
