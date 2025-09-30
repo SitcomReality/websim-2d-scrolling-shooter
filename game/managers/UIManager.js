@@ -28,13 +28,16 @@ export class UIManager extends EventEmitter {
     }
     
     bindEvents() {
-        this.elements.startBtn.addEventListener('click', () => {
-            this.emit('start');
-        });
-        
-        this.elements.restartBtn.addEventListener('click', () => {
-            this.emit('restart');
-        });
+        if (this.elements.startBtn) {
+            this.elements.startBtn.addEventListener('click', () => {
+                this.emit('start');
+            });
+        }
+        if (this.elements.restartBtn) {
+            this.elements.restartBtn.addEventListener('click', () => {
+                this.emit('restart');
+            });
+        }
         
         const openShopBtn = document.getElementById('open-shop-btn');
         // Dev helper: give currency (replaces legacy open-shop dev button)
