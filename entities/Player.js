@@ -1,8 +1,8 @@
 import { Entity } from './Entity.js';
-import { HealthComponent } from '../components/HealthComponent.js';
-import { MovementComponent } from '../components/MovementComponent.js';
-import { WeaponComponent } from '../components/WeaponComponent.js';
-import { PlayerStatsComponent } from '../components/PlayerStatsComponent.js';
+import { HealthComponent } from '../game/components/HealthComponent.js';
+import { MovementComponent } from '../game/components/MovementComponent.js';
+import { WeaponComponent } from '../game/components/WeaponComponent.js';
+import { PlayerStatsComponent } from '../game/components/PlayerStatsComponent.js';
 
 export class Player extends Entity {
     constructor(x, y) {
