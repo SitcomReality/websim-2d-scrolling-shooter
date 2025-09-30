@@ -45,10 +45,35 @@ export class StatShopManager {
     _renderItems() {
         // Phase 1 items (minimal, per spec)
         const items = [
-            { id: 'health', name: 'Max Health +5', cost: 30, apply: () => { this.player.maxHealth = (this.player.maxHealth || 100) + 5; } },
-            { id: 'damage', name: 'Damage +1', cost: 50, apply: () => { if (this.player.weaponComponent) this.player.increaseDamage(1); else this.player.damage = (this.player.damage || 1) + 1; } },
-            { id: 'speed', name: 'Speed +0.5', cost: 40, apply: () => { this.player.increaseSpeed(0.5); } },
-            { id: 'lifesteal', name: 'Lifesteal +2%', cost: 60, apply: () => { this.player.lifesteal = (this.player.lifesteal || 0) + 0.02; } }
+            { id: 'health', name: 'Max Health +5', cost: 30, apply: () => { 
+                if (typeof this.player.setMaxHealth === 'function') {
+                    this.player.setMaxHealth((this.player.maxHealth || 100) + 5);
+                } else {
+                    this.player.maxHealth = (this.player.maxHealth || 100) + 5;
+                }
+            } },
+            { id: 'damage', name: 'Damage +1', cost: 50, apply: () => { 
+                if (typeof this.player.increaseDamage === 'function') {
+                    this.player.increaseDamage(1);
+                } else {
+                    this.player.damage = (this.player.damage || 1) + 1;
+                }
+            } },
+            { id: 'speed', name: 'Speed +0.5', cost: 40, apply: () => { 
+                if (typeof this.player.increaseSpeed === 'function') {
+                    this.player.increaseSpeed(0.5);
+                } else {
+                    this.player.speed = (this.player.speed || 5) + 0.5;
+                }
+            } },
+            { id: 'lifesteal', name: 'Lifesteal +2%', cost: 60, apply: () => { 
+                // prefer statsComponent if present, otherwise attach property directly
+                if (this.player.statsComponent && typeof this.player.statsComponent.stats === 'object') {
+                    this.player.statsComponent.stats.lifesteal = (this.player.statsComponent.stats.lifesteal || 0) + 0.02;
+                } else {
+                    this.player.lifesteal = (this.player.lifesteal || 0) + 0.02;
+                }
+            } }
         ];
 
         this._itemsContainer.innerHTML = '';
@@ -68,12 +93,31 @@ export class StatShopManager {
                 <button data-id="${item.id}" style="padding:6px;border-radius:6px;border:none;cursor:pointer;background:#00ffff;color:#000;font-weight:bold;">Buy</button>
             `;
             const btn = node.querySelector('button');
+
+            const updateButtonState = () => {
+                if (this.gameState.xp >= item.cost) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.6';
+                }
+            };
+
             btn.addEventListener('click', () => {
                 if (this.gameState.xp >= item.cost) {
                     this.gameState.xp -= item.cost;
                     item.apply();
                     // update displayed balance and UI
                     this._balanceEl.textContent = `XP: ${Math.round(this.gameState.xp)}`;
+                    // refresh all buttons since XP changed
+                    Array.from(this._itemsContainer.querySelectorAll('button')).forEach(b => {
+                        const id = b.getAttribute('data-id');
+                        const it = items.find(i => i.id === id);
+                        if (it) {
+                            b.disabled = !(this.gameState.xp >= it.cost);
+                        }
+                    });
                     if (window.gameInstance && window.gameInstance.uiManager) window.gameInstance.uiManager.update();
                     if (window.gameInstance && window.gameInstance.sidePanelManager) window.gameInstance.sidePanelManager.updateSidePanels();
                 } else {
@@ -82,6 +126,10 @@ export class StatShopManager {
                     setTimeout(() => btn.style.transform = '', 120);
                 }
             });
+
+            // set initial enabled/disabled state based on current XP
+            updateButtonState();
+
             this._itemsContainer.appendChild(node);
         });
     }
