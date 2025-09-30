@@ -1,3 +1,5 @@
+import ChargeComponent from './ChargeComponent.js';
+
 export class WeaponComponent {
     constructor(weaponFactory, weaponType = 'single', config = {}) {
         this.weaponFactory = weaponFactory;
