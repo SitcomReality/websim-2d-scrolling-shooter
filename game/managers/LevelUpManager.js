@@ -48,6 +48,10 @@ export class LevelUpManager {
             this.upgradeSystem.applyUpgrade(choices[index], this.player);
             this.uiManager.hideUpgradeSelection();
             this.gameState.isPausedForLevelUp = false;
+            // Refresh side panels so ship stats reflect the applied upgrade
+            if (window.gameInstance && window.gameInstance.sidePanelManager) {
+                window.gameInstance.sidePanelManager.updateSidePanels();
+            }
         }
     }
 }
