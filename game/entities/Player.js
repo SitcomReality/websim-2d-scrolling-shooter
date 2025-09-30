@@ -344,18 +344,55 @@ export class Player extends Entity {
     }
 
     reset() {
+        // Reset position and basic components
         this.x = 400;
         this.y = 500;
-        this.healthComponent = new HealthComponent(100);
+
+        // Recreate stat system to ensure no leftover modifiers or registered shop stats remain
+        this.statSystem = new StatSystem();
+        // Re-register baseline stats (keep consistent with constructor defaults)
+        this.statSystem.registerStat({ id: 'maxHealth', name: 'Max Health', baseValue: 100, description: 'Maximum health', category: 'defensive', upgradeWeight: 0.8 });
+        this.statSystem.registerStat({ id: 'health', name: 'Health', baseValue: 100, description: 'Current health (managed by healthComponent)', category: 'defensive', upgradeWeight: 0 });
+        this.statSystem.registerStat({ id: 'damage', name: 'Damage', baseValue: 1, description: 'Bullet damage', category: 'offensive', upgradeWeight: 0.9 });
+        this.statSystem.registerStat({ id: 'speed', name: 'Speed', baseValue: 3, description: 'Movement speed', category: 'mobility', upgradeWeight: 0.7 });
+        this.statSystem.registerStat({ id: 'fireRate', name: 'Fire Rate', baseValue: 50, description: 'Milliseconds between shots', category: 'offensive', upgradeWeight: 0.6 });
+        this.statSystem.registerStat({ id: 'criticalChance', name: 'Critical Chance', baseValue: 0.1, description: 'Chance to deal critical damage', category: 'offensive', upgradeWeight: 0.4 });
+        this.statSystem.registerStat({ id: 'criticalDamage', name: 'Critical Damage', baseValue: 0.5, description: 'Extra damage multiplier on crit', category: 'offensive', upgradeWeight: 0.4 });
+        this.statSystem.registerStat({ id: 'luck', name: 'Luck', baseValue: 1.0, description: 'Affects upgrade quality and reroll cost', category: 'utility', upgradeWeight: 0.5 });
+        this.statSystem.registerStat({ id: 'lifesteal', name: 'Lifesteal', baseValue: 0, description: 'Fraction of damage healed on hit', category: 'defensive', upgradeWeight: 0.2 });
+        this.statSystem.registerStat({ id: 'chargeSpeed', name: 'Charge Speed', baseValue: 1.0, description: 'Multiplier for how fast charge accrues relative to fire rate', category: 'utility', upgradeWeight: 0.3 });
+        this.statSystem.registerStat({ id: 'maxCharge', name: 'Max Charge', baseValue: 8, description: 'Maximum stored projectiles from charging', category: 'utility', upgradeWeight: 0.4 });
+
+        // Recreate components to ensure clean state
+        this.healthComponent = new HealthComponent(this.statSystem.getStatValue('maxHealth') || 100);
+        this.movementComponent = new MovementComponent(this.statSystem.getStatValue('speed') || 3);
         this.movementComponent.setPosition(400, 500);
-        // Keep entity coordinates in sync with movement component
         this.x = this.movementComponent.position.x;
         this.y = this.movementComponent.position.y;
-        this.weaponComponent.clearBullets();
+
+        // Recreate weapon and charge components and wire them
+        this.weaponComponent = new WeaponComponent(this.weaponComponent?.weaponFactory || new (this.weaponComponent?.constructor || (function(){}))(), 'single', { damage: 1, fireRate: 150 });
+        this.chargeComponent = new ChargeComponent({
+            maxChargeTime: 5000,
+            maxStoredShots: this.statSystem.getStatValue('maxCharge') || 8,
+            chargeRate: 1,
+            statSystem: this.statSystem
+        });
+        this.weaponComponent.chargeComponent = this.chargeComponent;
+
+        // Reset other small state
+        if (!this.statsComponent) this.statsComponent = new PlayerStatsComponent();
         this.alive = true;
         this.statsComponent.setInvulnerable(false);
 
         // reset charge state
         if (this.chargeComponent) this.chargeComponent.reset();
+
+        // Ensure UI/gameState sync
+        if (window.gameInstance && window.gameInstance.gameState) {
+            window.gameInstance.gameState.maxHealth = this.statSystem.getStatValue('maxHealth');
+            window.gameInstance.gameState.health = this.healthComponent.currentHealth;
+            window.gameInstance.gameState.currency = 0;
+        }
     }
 }
