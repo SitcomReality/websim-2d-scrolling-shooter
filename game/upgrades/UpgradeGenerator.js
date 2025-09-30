@@ -1,4 +1,4 @@
-import { ProceduralUpgradeSystem } from '../../systems/ProceduralUpgradeSystem.js';
+import { ProceduralUpgradeSystem } from '../systems/ProceduralUpgradeSystem.js';
 
 export class UpgradeGenerator {
     constructor(rarityWeights) {
