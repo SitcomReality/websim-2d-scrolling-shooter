@@ -41,6 +41,9 @@ export class Game {
         this.movementSystem = new MovementSystem();
         this.utilitySystem = new UtilitySystem();
         
+        // Register player movement with MovementSystem so position updates correctly
+        // (will be updated once player is created below)
+        
         // Update upgrade system to include new upgrades
         this.upgradeSystem.availableUpgrades.push(new MovementUpgrade());
         this.upgradeSystem.availableUpgrades.push(new UtilityUpgrade());
@@ -49,6 +52,10 @@ export class Game {
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
         this.gameLoopManager = new GameLoopManager(this);
+        
+        // Ensure MovementSystem knows about the player's movement component and bounds
+        this.movementSystem.registerEntity('player', this.player.movementComponent);
+        this.movementSystem.setBounds('player', 0, this.canvas.width, 0, this.canvas.height);
         
         // Make game instance globally available for weapon systems
         window.gameInstance = this;
