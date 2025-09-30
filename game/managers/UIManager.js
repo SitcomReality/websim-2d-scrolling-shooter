@@ -196,4 +196,96 @@ export class UIManager extends EventEmitter {
     handleUpgradeSelection(index) {
         this.emit('upgradeSelected', index);
     }
+    
+    // Shop UI helpers (Phase 4)
+    showShop(offerings = [], shopController = null) {
+        // shopController expected to provide methods: purchase(itemId) and reroll()
+        if (!document.getElementById('shop-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'shop-overlay';
+            overlay.innerHTML = `
+                <div id="shop-panel">
+                    <div id="shop-header">
+                        <h2>Item Shop</h2>
+                        <div>
+                            <button id="shop-close">Close</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;">
+                        <div style="flex:1;">
+                            <div id="shop-items"></div>
+                        </div>
+                        <div id="shop-sidebar">
+                            <div id="shop-balance" style="color:#ffff00;font-weight:bold;margin-bottom:8px;">Currency: ${Math.round(this.gameState.currency || 0)}</div>
+                            <div id="shop-info" style="min-height:120px;">Select an item to see details here.</div>
+                        </div>
+                    </div>
+                    <div id="shop-footer">
+                        <div style="color:#cccccc;font-size:12px;">Shop offerings rotate each time you reroll.</div>
+                        <div>
+                            <button id="shop-reroll">Reroll</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // attach close
+            overlay.querySelector('#shop-close').addEventListener('click', () => this.hideShop());
+            overlay.querySelector('#shop-reroll').addEventListener('click', async () => {
+                if (shopController && typeof shopController.reroll === 'function') {
+                    this.emit('shopRerollRequested');
+                }
+            });
+        }
+
+        // populate items
+        const itemsEl = document.getElementById('shop-items');
+        const infoEl = document.getElementById('shop-info');
+        const balanceEl = document.getElementById('shop-balance');
+        itemsEl.innerHTML = '';
+        balanceEl.textContent = `Currency: ${Math.round(this.gameState.currency || 0)}`;
+
+        offerings.forEach(off => {
+            const card = document.createElement('div');
+            card.className = 'shop-card';
+            const statsList = (off.definesStats || []).map(s => `${s.name || s.id}`).join(', ');
+            const behaviors = (off.description || '').replace(/\n/g,' ');
+            card.innerHTML = `
+                <div class="name">${off.name}</div>
+                <div class="desc">${behaviors}</div>
+                <div class="meta">Cost: <span style="color:#ffff00">${off.cost}</span></div>
+                <div class="tags">${off.category ? off.category.toUpperCase() : ''} ${statsList ? ' • Adds: ' + statsList : ''}</div>
+                <button class="purchase">${off.cost ? `Buy (${off.cost})` : 'Buy'}</button>
+            `;
+            // show details on hover/click
+            card.addEventListener('mouseenter', () => {
+                infoEl.innerHTML = `<div style="color:#00ffff;font-weight:bold;">${off.name}</div>
+                                    <div style="margin-top:6px;color:#cccccc;">${off.description || ''}</div>
+                                    <div style="margin-top:8px;color:#ffff00;">Registers stats: ${statsList || '—'}</div>
+                                    <div style="margin-top:6px;color:#88ffff;">Dependencies: ${ (off.dependencies && off.dependencies.length) ? off.dependencies.join(', ') : 'None' }</div>`;
+            });
+
+            const btn = card.querySelector('button.purchase');
+            btn.addEventListener('click', () => {
+                // emit purchase intent; consumer (Game/ShopSystem) should handle validation
+                this.emit('shopPurchaseRequested', off.id);
+            });
+
+            // disable if insufficient funds
+            if ((this.gameState.currency || 0) < (off.cost || 0)) {
+                btn.disabled = true;
+            }
+
+            itemsEl.appendChild(card);
+        });
+
+        // show overlay
+        document.getElementById('shop-overlay').style.display = 'flex';
+    }
+
+    hideShop() {
+        const overlay = document.getElementById('shop-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
 }

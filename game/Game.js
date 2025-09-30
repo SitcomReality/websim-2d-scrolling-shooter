@@ -53,6 +53,7 @@ export class Game {
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
         this.statShopManager = new StatShopManager(this.gameState, this.player);
+        this.shopSystem = new (await (async () => { return (await import('./shop/ShopSystem.js')).default; })) (this.gameState); // dynamic import to avoid load-order issues
         this.gameLoopManager = new GameLoopManager(this);
         
         // Ensure MovementSystem knows about the player's movement component and bounds
@@ -83,6 +84,41 @@ export class Game {
         
         // Update side panels
         this.sidePanelManager.updateSidePanels();
+        
+        this.uiManager.on('shopPurchaseRequested', (itemId) => {
+            // Attempt purchase via ShopSystem then notify UI
+            if (this.shopSystem) {
+                const result = this.shopSystem.purchaseItem(itemId, this.player);
+                if (result && result.success) {
+                    // update UI and show confirmation briefly
+                    this.uiManager.update();
+                    const overlay = document.getElementById('shop-overlay');
+                    const info = document.getElementById('shop-info');
+                    if (info) info.innerHTML = `<div style="color:#ffff00;font-weight:bold;">${itemId} acquired!</div>`;
+                    // refresh offerings in UI
+                    const offerings = this.shopSystem.getOfferings();
+                    this.uiManager.showShop(offerings, this.shopSystem);
+                } else {
+                    // show reason in info
+                    const info = document.getElementById('shop-info');
+                    if (info) info.textContent = `Purchase failed: ${result.reason || 'unknown'}`;
+                }
+            }
+        });
+
+        this.uiManager.on('shopRerollRequested', () => {
+            if (!this.shopSystem) return;
+            const seed = this.gameState.shopSeed || Date.now();
+            const res = this.shopSystem.rerollOfferings(seed, this.shopSystem.getOwned(), { levelIndex: this.gameState.level });
+            if (res && res.success) {
+                // update UI with new offerings and update currency display
+                this.uiManager.showShop(res.offerings || this.shopSystem.getOfferings(), this.shopSystem);
+                this.uiManager.update();
+            } else {
+                const info = document.getElementById('shop-info');
+                if (info) info.textContent = `Reroll failed: ${res.reason || 'insufficient funds'}`;
+            }
+        });
     }
     
     handleReroll() {

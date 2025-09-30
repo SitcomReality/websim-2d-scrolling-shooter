@@ -1,0 +1,81 @@
+/* New shop styles (Phase 4) */
+#shop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.85);
+    z-index: 3000;
+    pointer-events: all;
+}
+#shop-panel {
+    width: 820px;
+    max-width: calc(100% - 40px);
+    background: #001122;
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    padding: 18px;
+    color: #00ffff;
+    font-family: Arial, sans-serif;
+}
+#shop-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+#shop-header h2 { color:#ffff00; margin:0; }
+#shop-items {
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+}
+.shop-card {
+    width: 180px;
+    background: rgba(0,255,255,0.03);
+    border:1px solid rgba(0,255,255,0.08);
+    border-radius:8px;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+.shop-card .name { color:#00ffff; font-weight:bold; font-size:14px; }
+.shop-card .desc { color:#cccccc; font-size:12px; min-height:36px; }
+.shop-card .meta { color:#ffff00; font-size:12px; }
+.shop-card .tags { color:#88ffff; font-size:11px; margin-top:4px; }
+.shop-card button.purchase {
+    background:#00ffff;color:#000;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:bold;
+}
+.shop-card button.purchase:disabled { background:#444;color:#999;cursor:not-allowed; }
+#shop-sidebar {
+    width:220px;
+    margin-left:12px;
+    background: rgba(0,255,255,0.01);
+    border:1px solid rgba(0,255,255,0.04);
+    padding:10px;border-radius:6px;color:#cccccc;font-size:13px;
+}
+#shop-footer {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:12px;
+}
+#shop-reroll {
+    background: linear-gradient(135deg,#ff6600,#ff9900);
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+#shop-close {
+    background:#ff0066;color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;
+}
+
