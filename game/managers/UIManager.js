@@ -1,6 +1,7 @@
 import { EventEmitter } from '../utils/EventEmitter.js';
 import UpgradeUI from '../ui/UpgradeUI.js';
 import ShopUI from '../ui/ShopUI.js';
+import StatDebugUI from '../ui/StatDebugUI.js';
 
 export class UIManager extends EventEmitter {
     constructor(gameState) {
@@ -23,6 +24,7 @@ export class UIManager extends EventEmitter {
         // Modular UI handlers
         this.upgradeUI = new UpgradeUI(this);
         this.shopUI = new ShopUI(this);
+        this.statDebugUI = new StatDebugUI(this);
 
         // Subscribe to currency change events (emitted by pickups)
         this.on('currencyChanged', (newAmount) => {
@@ -39,6 +41,14 @@ export class UIManager extends EventEmitter {
         const giveCurrencyBtn = document.getElementById('give-currency-btn');
         if (giveCurrencyBtn) {
             giveCurrencyBtn.addEventListener('click', () => this.emit('devGiveCurrency'));
+        }
+
+        // Stat debug opener
+        const statDebugBtn = document.getElementById('open-stat-debug-btn');
+        if (statDebugBtn) {
+            statDebugBtn.addEventListener('click', () => {
+                if (this.statDebugUI) this.statDebugUI.show();
+            });
         }
         
         // Dev panel events
