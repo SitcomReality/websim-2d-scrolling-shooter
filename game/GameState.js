@@ -14,6 +14,6 @@ export class GameState {
         this.isPausedForLevelUp = false
         this.levelUpDelayTimer = 0
         this.isLevelUpPending = false
+        this.currency = 0; // Phase 2: track player currency
     }
 }
-

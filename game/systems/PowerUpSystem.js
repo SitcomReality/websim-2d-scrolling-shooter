@@ -1,4 +1,5 @@
 import { Entity } from '../entities/Entity.js';
+import CurrencyPickup from '../entities/CurrencyPickup.js';
 
 export class PowerUpSystem {
     constructor() {
@@ -16,6 +17,10 @@ export class PowerUpSystem {
         this.powerUps = this.powerUps.filter(powerUp => powerUp.alive);
     }
     
+    render(ctx) {
+        this.powerUps.forEach(powerUp => powerUp.render(ctx));
+    }
+    
     spawnPowerUp() {
         // Implementation for power-ups
     }
@@ -24,9 +29,9 @@ export class PowerUpSystem {
         const healthAmount = 5; // Fixed amount
         this.powerUps.push(new HealthPickup(x, y, healthAmount));
     }
-    
-    render(ctx) {
-        this.powerUps.forEach(powerUp => powerUp.render(ctx));
+
+    spawnCurrencyPickup(x, y, amount = 1) {
+        this.powerUps.push(new CurrencyPickup(x, y, amount));
     }
     
     checkPlayerCollision(player) {

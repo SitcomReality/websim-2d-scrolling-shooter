@@ -5,6 +5,12 @@ export class CollisionSystem {
         this.scoreGained = 0;
         this.damageTaken = 0;
         this.damageTextSystem = new DamageTextSystem();
+
+        // Tuning for drops (Phase 2)
+        this.dropConfig = {
+            dropChance: 0.5, // base chance an enemy drops currency
+            shardByType: { basic: [1,3], fast: [2,5], zigzag: [2,6], tank: [4,10] }
+        };
     }
     
     // Helper: bullets are plain objects so provide bounding-box collision check
@@ -52,6 +58,19 @@ export class CollisionSystem {
                         const dropChance = player.healthPickupChance || 0.02;
                         if (Math.random() < dropChance) {
                             powerUpSystem.spawnHealthPickup(enemy.x, enemy.y);
+                        }
+
+                        // NEW: roll currency drop and spawn CurrencyPickup via PowerUpSystem
+                        try {
+                            const cfg = this.dropConfig;
+                            if (Math.random() < cfg.dropChance) {
+                                const range = cfg.shardByType[enemy.type] || [1,3];
+                                const min = range[0], max = range[1];
+                                const shardAmount = Math.round(min + Math.random() * (max - min));
+                                powerUpSystem.spawnCurrencyPickup(enemy.x, enemy.y, shardAmount);
+                            }
+                        } catch (e) {
+                            // ignore spawn errors
                         }
                     }
                     

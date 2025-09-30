@@ -15,8 +15,14 @@ export class UIManager extends EventEmitter {
             scoreDisplay: document.getElementById('score-display'),
             levelDisplay: document.getElementById('level-display'),
             upgradeOverlay: document.getElementById('upgrade-selection-overlay'),
-            upgradeChoices: document.getElementById('upgrade-choices')
+            upgradeChoices: document.getElementById('upgrade-choices'),
+            currencyDisplay: document.getElementById('currency-display')
         };
+        
+        // Subscribe to currency change events (emitted by pickups)
+        this.on('currencyChanged', (newAmount) => {
+            if (this.elements.currencyDisplay) this.elements.currencyDisplay.textContent = `Currency: ${Math.round(newAmount)}`;
+        });
         
         this.bindEvents();
     }
@@ -90,6 +96,9 @@ export class UIManager extends EventEmitter {
         // Update displays
         this.elements.scoreDisplay.textContent = `Score: ${this.gameState.score}`;
         this.elements.levelDisplay.textContent = `Level ${this.gameState.level}`;
+        if (this.elements.currencyDisplay) {
+            this.elements.currencyDisplay.textContent = `Currency: ${Math.round(this.gameState.currency || 0)}`;
+        }
     }
     
     animateHealthBar() {
