@@ -99,9 +99,24 @@ export default class StatDebugUI {
                         statSystem.setBaseValue(def.id, val);
                         // ensure player components react (e.g., charge refresh)
                         if (player && player.chargeComponent && typeof player.chargeComponent.refreshFromStats === 'function') player.chargeComponent.refreshFromStats();
-                        if (player && player.movementComponent && typeof player.movementComponent.setPosition === 'function') {
-                            // update movement base speed if stat changed
-                            if (def.id === 'speed') player.movementComponent.baseSpeed = statSystem.getStatValue('speed') || player.movementComponent.baseSpeed;
+                        // Immediately propagate key stat changes to components
+                        if (def.id === 'speed' && player && player.movementComponent) {
+                            const newSpeed = statSystem.getStatValue('speed');
+                            player.movementComponent.baseSpeed = newSpeed;
+                            player.movementComponent.currentSpeed = newSpeed;
+                        }
+                        if (def.id === 'fireRate' && player && player.weaponComponent && player.weaponComponent.currentWeapon) {
+                            const newFR = statSystem.getStatValue('fireRate');
+                            try { player.weaponComponent.currentWeapon.fireRate = newFR; } catch(e){}
+                        }
+                        if (def.id === 'maxHealth' && player && player.healthComponent) {
+                            const newMax = statSystem.getStatValue('maxHealth');
+                            player.healthComponent.setMaxHealth(newMax);
+                            // keep game state synced
+                            if (window.gameInstance && window.gameInstance.gameState) {
+                                window.gameInstance.gameState.maxHealth = player.healthComponent.maxHealth;
+                                window.gameInstance.gameState.health = player.healthComponent.currentHealth;
+                            }
                         }
                         // Force side panels & UI refresh
                         if (window.gameInstance && window.gameInstance.sidePanelManager) window.gameInstance.sidePanelManager.updateSidePanels();
