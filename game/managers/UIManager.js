@@ -202,6 +202,8 @@ export class UIManager extends EventEmitter {
         // shopController expected to provide methods: purchase(itemId) and reroll()
         // Pause game while shop visible
         if (this.gameState) this.gameState.isPausedForLevelUp = true;
+        // also set a dedicated flag for shop visible to help other subsystems if needed
+        this.gameState.isShopVisible = true;
         
         if (!document.getElementById('shop-overlay')) {
             const overlay = document.createElement('div');
@@ -291,6 +293,9 @@ export class UIManager extends EventEmitter {
         const overlay = document.getElementById('shop-overlay');
         if (overlay) overlay.style.display = 'none';
         // Resume game when shop closed
-        if (this.gameState) this.gameState.isPausedForLevelUp = false;
+        if (this.gameState) {
+            this.gameState.isPausedForLevelUp = false;
+            this.gameState.isShopVisible = false;
+        }
     }
 }

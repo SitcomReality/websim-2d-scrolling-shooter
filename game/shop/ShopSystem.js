@@ -180,6 +180,12 @@ export class ShopSystem {
         // remove offering from current list
         this.currentOfferings = this.currentOfferings.filter(it => it.id !== itemId);
 
+        // Persist overall game/save state if SaveLoadManager is available globally
+        try {
+            const saveManager = (window.gameInstance && window.gameInstance.saveLoadManager) ? window.gameInstance.saveLoadManager : null;
+            if (saveManager && typeof saveManager.save === 'function') saveManager.save();
+        } catch (e) { /* ignore save errors */ }
+
         // return success
         return { success: true };
     }
@@ -194,8 +200,18 @@ export class ShopSystem {
         this.gameState.currency = Math.max(0, currency - cost);
         this.rerollCount++;
 
+        // persist reroll count to gameState for SaveLoadManager
+        this.gameState.rerollCount = this.rerollCount;
+
         // regenerate with same seed but updated rerollCount influences seed
         const offerings = this.generateOfferings(seed, playerOwnedItems, context);
+
+        // Persist overall game/save state if SaveLoadManager is available globally
+        try {
+            const saveManager = (window.gameInstance && window.gameInstance.saveLoadManager) ? window.gameInstance.saveLoadManager : null;
+            if (saveManager && typeof saveManager.save === 'function') saveManager.save();
+        } catch (e) { /* ignore save errors */ }
+
         return { success: true, cost, offerings };
     }
 

@@ -15,5 +15,11 @@ export class GameState {
         this.levelUpDelayTimer = 0
         this.isLevelUpPending = false
         this.currency = 0; // Phase 2: track player currency
+
+        // Persistence / shop metadata
+        this.ownedItems = [];       // persisted owned shop item ids
+        this.shopSeed = Date.now(); // deterministic seed base for shop offers
+        this.rerollCount = 0;       // persisted reroll count from shop
+        this.statSnapshot = null;   // optional serialized stat system snapshot
     }
 }

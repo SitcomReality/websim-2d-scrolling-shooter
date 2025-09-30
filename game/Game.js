@@ -12,6 +12,7 @@ import { GameLoopManager } from './managers/GameLoopManager.js';
 import { SidePanelManager } from './managers/SidePanelManager.js';
 import { LevelUpManager } from './managers/LevelUpManager.js';
 import { StatShopManager } from './managers/StatShopManager.js';
+import { SaveLoadManager } from './managers/SaveLoadManager.js';
 import { WeaponFactory } from './weapons/WeaponFactory.js';
 import { WeaponUnlockUpgrade } from './upgrades/types/WeaponUnlockUpgrade.js';
 import { MovementSystem } from './systems/MovementSystem.js';
@@ -53,7 +54,7 @@ export class Game {
         this.sidePanelManager = new SidePanelManager(this.player, this.enemySpawner);
         this.levelUpManager = new LevelUpManager(this.gameState, this.uiManager, this.upgradeSystem, this.player, this.enemySpawner);
         this.statShopManager = new StatShopManager(this.gameState, this.player);
-        
+
         // dynamic import to avoid load-order issues — initialize asynchronously
         import('./shop/ShopSystem.js').then(mod => {
             try {
@@ -68,14 +69,41 @@ export class Game {
             }
         }).catch(err => console.warn('Failed to import ShopSystem', err));
         
+        // Initialize SaveLoadManager (after shopSystem dynamic import may complete we still create manager now)
+        this.saveLoadManager = new SaveLoadManager(this.gameState, this.player, null, this.player ? this.player.statSystem : null);
+        // expose globally so ShopSystem can call save easily
+        window.gameInstance = this;
+        window.gameInstance.saveLoadManager = this.saveLoadManager;
+
+        // If shopSystem loads later, attach it to saveLoadManager so saves include owned items
+        (async () => {
+            try {
+                const mod = await import('./shop/ShopSystem.js');
+                if (mod && mod.default && this.shopSystem) {
+                    this.saveLoadManager.shopSystem = this.shopSystem;
+                }
+            } catch (e) { /* ignore */ }
+        })();
+
+        // Attempt to load previous save (rehydrate stats, owned items and currency)
+        try {
+            // assign manager references properly and call load to rehydrate
+            this.saveLoadManager.shopSystem = this.shopSystem || null;
+            this.saveLoadManager.statSystem = this.player ? this.player.statSystem : null;
+            const loaded = this.saveLoadManager.load();
+            if (loaded) {
+                // ensure UI reflects restored currency etc.
+                if (this.uiManager) this.uiManager.update();
+            }
+        } catch (e) {
+            console.warn('Auto-load failed', e);
+        }
+        
         this.gameLoopManager = new GameLoopManager(this);
         
         // Ensure MovementSystem knows about the player's movement component and bounds
         this.movementSystem.registerEntity('player', this.player.movementComponent);
         this.movementSystem.setBounds('player', 0, this.canvas.width, 0, this.canvas.height);
-        
-        // Make game instance globally available for weapon systems
-        window.gameInstance = this;
         
         this.bindEvents();
     }
