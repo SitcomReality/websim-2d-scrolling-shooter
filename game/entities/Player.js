@@ -155,10 +155,50 @@ export class Player extends Entity {
         ctx.closePath();
         ctx.fill();
 
+        // Show charge indicator when charging
+        if (this.weaponComponent.isCharging && this.weaponComponent.chargedBullets > 0) {
+            const chargeRatio = Math.min((Date.now() - this.weaponComponent.chargeStartTime) / this.weaponComponent.maxChargeTime, 1);
+            const radius = 20 + chargeRatio * 10;
+            const alpha = 0.3 + chargeRatio * 0.4;
+
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Show bullet count
+            ctx.fillStyle = '#00ffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.weaponComponent.chargedBullets, this.x, this.y + 5);
+        }
+
         ctx.restore();
 
         // Render bullets
         this.weaponComponent.getBullets().forEach(bullet => bullet.render(ctx));
+        
+        // Charge indicator - commented out until charging weapon system is restored
+        /*
+        if (this.weaponComponent.isCharging && this.weaponComponent.chargedBullets > 0) {
+            const chargeRatio = Math.min((Date.now() - this.weaponComponent.chargeStartTime) / this.weaponComponent.maxChargeTime, 1);
+            const radius = 20 + chargeRatio * 10;
+            const alpha = 0.3 + chargeRatio * 0.4;
+
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Show bullet count
+            ctx.fillStyle = '#00ffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.weaponComponent.chargedBullets, this.x, this.y + 5);
+        }
+        */
     }
 
     reset() {
