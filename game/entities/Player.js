@@ -107,8 +107,9 @@ export class Player extends Entity {
 
         // Initialize components
         this.healthComponent = new HealthComponent(100);
-        this.movementComponent = new MovementComponent(5);
-        this.weaponComponent = new WeaponComponent(weaponFactory, 'single', { damage: 1, fireRate: 150 });
+        // Use StatSystem as single source of truth for base values
+        this.movementComponent = new MovementComponent(this.statSystem.getStatValue('speed') || 3);
+        this.weaponComponent = new WeaponComponent(weaponFactory, 'single', { damage: 1, fireRate: this.statSystem.getStatValue('fireRate') || 150 });
         this.statsComponent = new PlayerStatsComponent();
 
         // Charge component — derive parameters from statSystem (chargeSpeed & maxCharge)
@@ -255,13 +256,17 @@ export class Player extends Entity {
     }
 
     get speed() { return this.statSystem.getStatValue('speed'); }
-    set speed(value) { this.statSystem.setBaseValue('speed', value); }
+    set speed(value) { this.statSystem.setBaseValue('speed', value); if (this.movementComponent) { this.movementComponent.baseSpeed = value; this.movementComponent.currentSpeed = value; } }
 
     get damage() { return this.statSystem.getStatValue('damage'); }
     set damage(value) { this.statSystem.setBaseValue('damage', value); }
 
     get fireRate() { return this.statSystem.getStatValue('fireRate'); }
-    set fireRate(value) { this.statSystem.setBaseValue('fireRate', value); }
+    set fireRate(value) { 
+        this.statSystem.setBaseValue('fireRate', value);
+        // propagate to weapon instance (fireRate is ms between shots)
+        try { if (this.weaponComponent && this.weaponComponent.currentWeapon) this.weaponComponent.currentWeapon.fireRate = value; } catch(e){}
+    }
 
     get healthPickupChance() { return this.statsComponent.getHealthPickupChance(); }
     set healthPickupChance(value) { this.statsComponent.increaseHealthPickupChance(value - this.statsComponent.getHealthPickupChance()); }
@@ -371,7 +376,7 @@ export class Player extends Entity {
         this.y = this.movementComponent.position.y;
 
         // Recreate weapon and charge components and wire them
-        this.weaponComponent = new WeaponComponent(this.weaponComponent?.weaponFactory || new (this.weaponComponent?.constructor || (function(){}))(), 'single', { damage: 1, fireRate: 150 });
+        this.weaponComponent = new WeaponComponent(this.weaponComponent?.weaponFactory || new (this.weaponComponent?.constructor || (function(){}))(), 'single', { damage: 1, fireRate: this.statSystem.getStatValue('fireRate') || 150 });
         this.chargeComponent = new ChargeComponent({
             maxChargeTime: 5000,
             maxStoredShots: this.statSystem.getStatValue('maxCharge') || 8,
