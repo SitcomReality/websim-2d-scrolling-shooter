@@ -6,6 +6,7 @@
     <title>2D Scrolling Shooter</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles/synergy-notifications.css">
+    <link rel="stylesheet" href="styles/shop.css">
 </head>
 <body>
     <div id="game-container">
@@ -18,6 +19,7 @@
         </div>
         
         <div id="left-panel">
+            <div id="currency-display" style="margin-bottom:10px; color:#ffff00; font-weight:bold; text-align:center;">Currency: 0</div>
             <h3>Ship Stats</h3>
             <div id="ship-stats-list"></div>
         </div>
@@ -36,7 +38,8 @@
             <button id="heal-btn" class="dev-btn">Full Heal</button>
             <button id="max-xp-btn" class="dev-btn">Max XP</button>
             <button id="kill-all-btn" class="dev-btn">Kill All Enemies</button>
-            <button id="open-shop-btn" class="dev-btn">Open Stat Shop</button>
+            <button id="give-currency-btn" class="dev-btn">Give 1000 Currency</button>
+            <button id="open-stat-debug-btn" class="dev-btn">Stat Debug</button>
         </div>
         
         <div id="xp-container">
@@ -45,11 +48,6 @@
                 <div id="xp-value">0 / 100</div>
             </div>
             <div id="level-display">Level 1</div>
-        </div>
-        
-        <div id="ui-overlay">
-            <button id="start-btn">Start Game</button>
-            <button id="restart-btn" style="display: none;">Restart</button>
         </div>
     </div>
     
