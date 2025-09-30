@@ -6,8 +6,8 @@ export class MovementComponent {
         this.velocity = { x: 0, y: 0 };
         this.bounds = { minX: 0, maxX: 0, minY: 0, maxY: 0 };
         // inertia / smoothing parameters
-        this.acceleration = 0.28; // how quickly velocity moves toward target (higher = snappier)
-        this.friction = 0.12;     // how quickly velocity decays when no input (higher = faster stop)
+        this.acceleration = 0.12; // lower -> slower to reach full speed
+        this.friction = 0.06;     // lower -> gentler slow down when input stops
     }
     
     update(deltaTime, inputState) {
