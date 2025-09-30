@@ -143,6 +143,8 @@ export class UIManager extends EventEmitter {
 
     // Delegate upgrade UI responsibilities
     showUpgradeSelection(choices, upgradeSystem) {
+        // keep a reference so other managers (LevelUpManager) can read available choices
+        this.upgradeChoices = Array.isArray(choices) ? choices.slice() : [];
         if (this.upgradeUI) this.upgradeUI.show(choices, upgradeSystem);
     }
     
