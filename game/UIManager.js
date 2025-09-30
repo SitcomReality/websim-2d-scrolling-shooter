@@ -133,6 +133,37 @@ export class UIManager extends EventEmitter {
         this.upgradeChoices = choices;
         this.elements.upgradeChoices.innerHTML = '';
         
+        // Add reroll button if available
+        const rerollContainer = document.createElement('div');
+        rerollContainer.className = 'reroll-container';
+        
+        const rerollButton = document.createElement('button');
+        rerollButton.className = 'reroll-button';
+        rerollButton.textContent = `Reroll (${upgradeSystem.getRerollCount()} remaining)`;
+        
+        const rerollCost = upgradeSystem.getRerollCost();
+        const canReroll = upgradeSystem.canReroll(this.gameState.xp, this.gameState.playerLuck || 1.0);
+        
+        if (canReroll) {
+            rerollButton.disabled = false;
+            rerollButton.textContent = `Reroll (${upgradeSystem.getRerollCount()} remaining)`;
+        } else {
+            rerollButton.disabled = true;
+            if (this.gameState.xp < rerollCost) {
+                rerollButton.textContent = `Need ${rerollCost} XP`;
+            } else {
+                rerollButton.textContent = 'No rerolls left';
+            }
+        }
+        
+        rerollButton.addEventListener('click', () => {
+            this.emit('rerollUpgrades');
+        });
+        
+        rerollContainer.appendChild(rerollButton);
+        this.elements.upgradeChoices.appendChild(rerollContainer);
+        
+        // Add upgrade cards
         choices.forEach((choice, index) => {
             const card = upgradeSystem.createUpgradeCard(choice, index);
             card.addEventListener('click', () => {

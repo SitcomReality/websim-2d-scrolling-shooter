@@ -95,3 +95,35 @@
 .rare .upgrade-rarity { color: #0080ff; }
 .legendary .upgrade-rarity { color: #ff00ff; }
 
+/* Reroll system styles */
+.reroll-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.reroll-button {
+    background: linear-gradient(135deg, #ff6600, #ff9900);
+    border: 2px solid #ff9900;
+    border-radius: 8px;
+    padding: 12px 24px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.3);
+}
+
+.reroll-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 153, 0, 0.5);
+}
+
+.reroll-button:disabled {
+    background: linear-gradient(135deg, #444444, #666666);
+    border-color: #666666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}

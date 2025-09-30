@@ -14,6 +14,7 @@ import { ChainUpgrade } from './types/ChainUpgrade.js';
 import { RicochetUpgrade } from './types/RicochetUpgrade.js';
 import { UpgradeGenerator } from './UpgradeGenerator.js';
 import { UpgradeCardCreator } from './UpgradeCardCreator.js';
+import { RerollSystem } from './RerollSystem.js';
 
 export class UpgradeSystem {
     constructor(weaponFactory) {
@@ -46,6 +47,7 @@ export class UpgradeSystem {
         // Initialize modular components
         this.upgradeGenerator = new UpgradeGenerator(this.rarityWeights);
         this.upgradeCardCreator = new UpgradeCardCreator();
+        this.rerollSystem = new RerollSystem();
     }
 
     generateUpgradeChoices(level, playerUpgrades, luck = 1.0) {
@@ -69,5 +71,35 @@ export class UpgradeSystem {
 
     createUpgradeCard(choice, index) {
         return this.upgradeCardCreator.createUpgradeCard(choice, index);
+    }
+
+    // Reroll functionality
+    canReroll(playerXP, playerLuck = 1.0) {
+        return this.rerollSystem.canReroll(playerXP, playerLuck);
+    }
+
+    performReroll(playerXP, playerLuck = 1.0) {
+        return this.rerollSystem.performReroll(playerXP, playerLuck);
+    }
+
+    getRerollCount() {
+        return this.rerollSystem.getRerollCount();
+    }
+
+    getMaxRerolls() {
+        return this.rerollSystem.getMaxRerolls();
+    }
+
+    getRerollCost(playerLuck = 1.0) {
+        return this.rerollSystem.getRerollCost(playerLuck);
+    }
+
+    restoreReroll() {
+        this.rerollSystem.restoreReroll();
+    }
+
+    reset() {
+        this.playerUpgrades.clear();
+        this.rerollSystem.reset();
     }
 }
