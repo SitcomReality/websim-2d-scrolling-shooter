@@ -140,4 +140,23 @@ export class WeaponComponent {
     getCurrentWeapon() {
         return this.currentWeapon;
     }
+
+    render(ctx) {
+        if (this.currentWeapon && typeof this.currentWeapon.render === 'function') {
+            // Use weapon's own render if available (e.g. BaseWeapon subclasses)
+            this.currentWeapon.render(ctx);
+            return;
+        }
+
+        // Fallback: draw plain bullet objects
+        const bullets = this.getBullets();
+        bullets.forEach(bullet => {
+            ctx.save();
+            ctx.fillStyle = bullet.color || '#00ffff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = bullet.color || '#00ffff';
+            ctx.fillRect(bullet.x - (bullet.width || 4) / 2, bullet.y - (bullet.height || 10) / 2, bullet.width || 4, bullet.height || 10);
+            ctx.restore();
+        });
+    }
 }
