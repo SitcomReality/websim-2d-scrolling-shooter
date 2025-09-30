@@ -23,6 +23,12 @@ export class WeaponComponent {
             maxStoredShots: config.maxStoredShots || 20,
             chargeRate: config.chargeRate || 1
         });
+
+        // Exposed charging state for UI / Player render
+        this.isCharging = false;
+        this.chargedBullets = 0;
+        this.chargeStartTime = 0;
+        this.maxChargeTime = this.chargeComponent ? this.chargeComponent.base.maxChargeTime : (config.maxChargeTime || 5000);
     }
 
     createFallbackWeapon(weaponType, config = {}) {
@@ -81,11 +87,17 @@ export class WeaponComponent {
         if (inputState.shoot) {
             if (!this.chargeComponent.isCharging()) {
                 this.chargeComponent.startCharging();
+                this.isCharging = true;
+                this.chargeStartTime = Date.now();
+                this.maxChargeTime = this.chargeComponent.base.maxChargeTime;
             }
         } else {
             // If we were charging and release occurs, release burst
             if (this.chargeComponent.isCharging()) {
                 const release = this.chargeComponent.stopCharging();
+                this.isCharging = false;
+                this.chargedBullets = 0;
+                this.chargeStartTime = 0;
                 if (release && this.currentWeapon) {
                     // release.count projectiles in ~180deg spread centered forward (0,-1)
                     const forward = { x: 0, y: -1 };
@@ -100,10 +112,12 @@ export class WeaponComponent {
                         // normalize
                         const len = Math.hypot(dir.x, dir.y) || 1;
                         dir.x /= len; dir.y /= len;
-                        const proj = this.currentWeapon.createProjectile(position, dir);
+                        const proj = this._createProjectileFromWeapon(position, dir);
                         // give a brief velocity jitter for burst feel
                         proj.vx += (Math.random() - 0.5) * 1.5;
                         proj.vy += (Math.random() - 0.5) * 1.5;
+                        // ensure bullets array exists
+                        if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
                         this.currentWeapon.bullets.push(proj);
                     }
                     // Ensure weapon's update loop will manage the new bullets
@@ -125,16 +139,25 @@ export class WeaponComponent {
                 const dir = { x: Math.sin(angle), y: -Math.cos(angle) };
                 const len = Math.hypot(dir.x, dir.y) || 1;
                 dir.x /= len; dir.y /= len;
-                const proj = this.currentWeapon.createProjectile(position, dir);
+                const proj = this._createProjectileFromWeapon(position, dir);
                 proj.vx += (Math.random() - 0.5) * 1.5;
                 proj.vy += (Math.random() - 0.5) * 1.5;
+                if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
                 this.currentWeapon.bullets.push(proj);
             }
             // if the player is still holding shoot, charging restarts automatically
             if (inputState.shoot) {
                 this.chargeComponent.startCharging();
+                this.isCharging = true;
+                this.chargeStartTime = Date.now();
+            } else {
+                this.isCharging = false;
+                this.chargeStartTime = 0;
             }
         }
+
+        // Update exposed chargedBullets count for UI feedback
+        this.chargedBullets = this.chargeComponent.getStoredShots();
 
         if (this.currentWeapon) {
             this.currentWeapon.update(deltaTime);
@@ -223,5 +246,39 @@ export class WeaponComponent {
             ctx.fillRect(bullet.x - (bullet.width || 4) / 2, bullet.y - (bullet.height || 10) / 2, bullet.width || 4, bullet.height || 10);
             ctx.restore();
         });
+    }
+
+    // Helper: create a projectile that works for weapon instances or fallback weapon objects
+    _createProjectileFromWeapon(position, direction) {
+        // If weapon exposes createProjectile (BaseWeapon subclasses), use it
+        if (this.currentWeapon && typeof this.currentWeapon.createProjectile === 'function') {
+            return this.currentWeapon.createProjectile(position, direction);
+        }
+
+        // Fallback: synthesize a projectile object using common properties
+        const speed = (this.currentWeapon && this.currentWeapon.projectileSpeed) || 10;
+        const damage = (this.currentWeapon && this.currentWeapon.damage) || 1;
+        const color = (this.currentWeapon && this.currentWeapon.projectileColor) || '#00ffff';
+
+        return {
+            x: position.x,
+            y: position.y,
+            vx: direction.x * speed,
+            vy: direction.y * speed,
+            damage: damage,
+            color: color,
+            alive: true,
+            width: (this.currentWeapon && this.currentWeapon.bulletWidth) || 4,
+            height: (this.currentWeapon && this.currentWeapon.bulletHeight) || 10,
+            piercing: (this.currentWeapon && this.currentWeapon.piercing) || 0,
+            chain: (this.currentWeapon && this.currentWeapon.chain) || 0,
+            chainRange: (this.currentWeapon && this.currentWeapon.chainRange) || 100,
+            chainDamageReduction: (this.currentWeapon && this.currentWeapon.chainDamageReduction) || 0.7,
+            penetration: (this.currentWeapon && this.currentWeapon.penetration) || 0,
+            ricochet: (this.currentWeapon && this.currentWeapon.ricochet) || 0,
+            hitTargets: [],
+            remainingChains: (this.currentWeapon && this.currentWeapon.chain) || 0,
+            remainingRicochets: (this.currentWeapon && this.currentWeapon.ricochet) || 0
+        };
     }
 }
