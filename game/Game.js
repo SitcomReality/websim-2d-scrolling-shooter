@@ -28,7 +28,7 @@ export class Game {
         this.uiManager = new UIManager(this.gameState);
         this.gameEngine = new GameEngine(this.canvas, this.ctx);
         
-        this.player = new Player(400, 500);
+        this.player = new Player(400, 500, new WeaponFactory());
         this.enemySpawner = new EnemySpawner(this.canvas);
         this.inputHandler = new InputHandler(this.canvas);
         this.collisionSystem = new CollisionSystem();

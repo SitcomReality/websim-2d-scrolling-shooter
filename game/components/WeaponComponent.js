@@ -1,5 +1,3 @@
-import { Bullet } from '../entities/Bullet.js';
-
 export class WeaponComponent {
     constructor(weaponFactory, weaponType = 'single', config = {}) {
         this.weaponFactory = weaponFactory;
