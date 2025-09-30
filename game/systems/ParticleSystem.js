@@ -30,7 +30,8 @@ export class ParticleSystem {
 
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const distance = 60 + Math.random() * 80 * (1 - intensity);
+            // Spawn close at low intensity; as intensity increases allow particles to spawn farther away
+            const distance = 10 + Math.random() * (40 + intensity * 120);
             const sx = x + Math.cos(angle) * distance;
             const sy = y + Math.sin(angle) * distance - 20;
             const speed = 0.5 + intensity * 2.0 + Math.random() * 0.5;
@@ -92,7 +93,8 @@ class SuctionParticle {
         this.lifetime = lifetime;
         this.maxLifetime = lifetime;
         this.alive = true;
-        this.size = 2 + Math.random() * 3;
+        // Reduce max suction particle size by 50%
+        this.size = (2 + Math.random() * 3) * 0.5;
         this.color = `rgba(0, 200, 255, ${0.6 + Math.random() * 0.4})`;
         this.vx = 0;
         this.vy = 0;
