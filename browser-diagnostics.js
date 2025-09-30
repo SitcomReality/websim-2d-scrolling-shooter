@@ -1,5 +1,5 @@
 // Enhanced browser diagnostic tool with better integration
-window.runImportDiagnostics = function() {
+function runImportDiagnostics() {
     console.clear();
     console.log('=== BROWSER IMPORT DIAGNOSTICS ===\n');
     
@@ -98,10 +98,10 @@ window.runImportDiagnostics = function() {
     }
     
     return { errors, warnings, timestamp: Date.now() };
-};
+}
 
 // Enhanced detailed diagnostics
-window.showDetailedDiagnostics = function() {
+function showDetailedDiagnostics() {
     console.log('\n=== DETAILED IMPORT ANALYSIS ===');
     
     // Check for 404 errors in network requests
@@ -129,13 +129,13 @@ window.showDetailedDiagnostics = function() {
         console.log('\n📋 Cached Error Log:');
         console.log(errorLog);
     }
-};
+}
 
 // Clear error log
-window.clearErrorLog = function() {
+function clearErrorLog() {
     localStorage.removeItem('gameErrorLog');
     console.log('✅ Error log cleared');
-};
+}
 
 // Enhanced error handler
 window.addEventListener('error', (event) => {
@@ -173,7 +173,7 @@ window.addEventListener('load', () => {
         // Auto-run if in development
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             console.log('🛠️  Development mode detected - running auto-diagnostics...');
-            window.runImportDiagnostics();
+            runImportDiagnostics();
         }
     }, 2000);
 });
