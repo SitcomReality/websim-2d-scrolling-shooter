@@ -41,7 +41,7 @@ export class Player extends Entity {
         this.statSystem.registerStat({
             id: 'speed',
             name: 'Speed',
-            baseValue: 5,
+            baseValue: 3,
             description: 'Movement speed',
             category: 'mobility',
             upgradeWeight: 0.7
@@ -49,7 +49,7 @@ export class Player extends Entity {
         this.statSystem.registerStat({
             id: 'fireRate',
             name: 'Fire Rate',
-            baseValue: 150,
+            baseValue: 50,
             description: 'Milliseconds between shots',
             category: 'offensive',
             upgradeWeight: 0.6
@@ -57,7 +57,7 @@ export class Player extends Entity {
         this.statSystem.registerStat({
             id: 'criticalChance',
             name: 'Critical Chance',
-            baseValue: 0.01,
+            baseValue: 0.1,
             description: 'Chance to deal critical damage',
             category: 'offensive',
             upgradeWeight: 0.4
@@ -99,7 +99,7 @@ export class Player extends Entity {
         this.statSystem.registerStat({
             id: 'maxCharge',
             name: 'Max Charge',
-            baseValue: 5,
+            baseValue: 8,
             description: 'Maximum stored projectiles from charging',
             category: 'utility',
             upgradeWeight: 0.4
