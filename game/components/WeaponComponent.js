@@ -270,8 +270,27 @@ export class WeaponComponent {
 
         // Fallback: synthesize a projectile object using common properties
         const speed = (this.currentWeapon && this.currentWeapon.projectileSpeed) || 10;
-        const damage = (this.currentWeapon && this.currentWeapon.damage) || 1;
+        let damage = (this.currentWeapon && this.currentWeapon.damage) || 1;
         const color = (this.currentWeapon && this.currentWeapon.projectileColor) || '#00ffff';
+
+        // Apply owner's StatSystem (critical chance/damage, damage overrides) if available
+        try {
+            const player = this.owner || (window.gameInstance && window.gameInstance.player);
+            if (player) {
+                const statSystem = player.statSystem || null;
+                const critChance = statSystem ? statSystem.getStatValue('criticalChance') : (player.statsComponent ? player.statsComponent.getCriticalChance() : (player.criticalChance || 0));
+                const critDamage = statSystem ? statSystem.getStatValue('criticalDamage') : (player.statsComponent ? player.statsComponent.getCriticalDamage() : (player.criticalDamage || 0));
+                const baseDamage = statSystem ? (statSystem.getStatValue('damage') || damage) : (player.damage || damage);
+                // determine crit
+                if (Math.random() < (critChance || 0)) {
+                    damage = baseDamage * (1 + (critDamage || 0));
+                } else {
+                    damage = baseDamage;
+                }
+            }
+        } catch (e) {
+            // silent fallback to previously computed damage
+        }
 
         return {
             x: position.x,
@@ -279,7 +298,7 @@ export class WeaponComponent {
             vx: direction.x * speed,
             vy: direction.y * speed,
             damage: damage,
-            color: color,
+            color: (Math.random() < 0 ? '#ffff00' : color), // color left as-is for fallback (crit color handled above)
             alive: true,
             width: (this.currentWeapon && this.currentWeapon.bulletWidth) || 4,
             height: (this.currentWeapon && this.currentWeapon.bulletHeight) || 10,
