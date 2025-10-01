@@ -39,17 +39,15 @@ class DamageText {
             nanobot: '#00ff00',
             fire: '#ff4500',
             ice: '#00bfff',
-            electric: '#ffff00',
-            critical: '#ffaa00'  // Distinct orange-yellow for crits
+            electric: '#ffff00'
         };
         
         this.color = colors[damageType] || colors.physical;
         this.velocity = { x: (Math.random() - 0.5) * 2, y: -2 };
-        this.lifetime = 1000;
+        this.lifetime = 1000; // milliseconds
         this.maxLifetime = 1000;
         this.alive = true;
-        // Crits get larger base font size
-        this.fontSize = damageType === 'critical' ? 20 : 16;
+        this.fontSize = 16;
     }
 
     update(deltaTime) {
@@ -71,10 +69,9 @@ class DamageText {
         ctx.fillStyle = this.color;
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'center';
-        ctx.shadowBlur = this.damageType === 'critical' ? 15 : 10;
+        ctx.shadowBlur = 10;
         ctx.shadowColor = this.color;
-        const prefix = this.damageType === 'critical' ? 'CRIT -' : '-';
-        ctx.fillText(`${prefix}${Math.round(this.amount)}`, this.x, this.y);
+        ctx.fillText(`-${this.amount}`, this.x, this.y);
         ctx.restore();
     }
 }
