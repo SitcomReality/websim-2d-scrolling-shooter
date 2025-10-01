@@ -6,24 +6,24 @@ export class Enemy extends Entity {
         super(x, y, 30, 30);
         this.type = type;
         this.speed = 2;
-        this.health = 1;
+        this.health = 10;
         this.fireRate = 2000;
         this.lastFireTime = 0;
         this.points = 10;
         
         if (type === 'fast') {
             this.speed = 4;
-            this.health = 1;
+            this.health = 10;
             this.points = 20;
             this.color = '#ff6666';
         } else if (type === 'tank') {
             this.speed = 1;
-            this.health = 3;
+            this.health = 30;
             this.points = 50;
             this.color = '#ff0000';
         } else if (type === 'zigzag') {
             this.speed = 1.5;
-            this.health = 2;
+            this.health = 20;
             this.points = 30;
             this.color = '#ff00ff';
             this.horizontalSpeed = 2;
