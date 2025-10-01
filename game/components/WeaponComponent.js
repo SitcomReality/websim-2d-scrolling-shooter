@@ -1,186 +1,57 @@
 import ChargeComponent from './ChargeComponent.js';
+import FallbackWeapon from './weapon/FallbackWeapon.js';
+import ProjectileFactory from './weapon/ProjectileFactory.js';
+import StatBinder from './weapon/StatBinder.js';
+import FiringLogic from './weapon/FiringLogic.js';
 
 export class WeaponComponent {
     constructor(weaponFactory, weaponType = 'single', config = {}) {
         this.weaponFactory = weaponFactory;
-        // store direct reference to statSystem when provided to avoid globals/late binding
         this.statSystem = config.statSystem || null;
-        
-        // Create initial weapon - handle cases where factory might not have createWeapon method
+
+        // create or fallback
         if (weaponFactory && typeof weaponFactory.createWeapon === 'function') {
             this.currentWeapon = weaponFactory.createWeapon(weaponType, config);
-        } else if (weaponFactory && typeof weaponFactory === 'function') {
-            // Handle direct WeaponFactory class
-            this.currentWeapon = weaponFactory.createWeapon(weaponType, config);
         } else {
-            // Fallback - create a basic weapon
-            this.currentWeapon = this.createFallbackWeapon(weaponType, config);
+            this.currentWeapon = FallbackWeapon(weaponType, config);
         }
-        
+
         this.weaponType = weaponType;
-        this.owner = null; // will be wired by PlayerSetup to reference the Player instance
+        this.owner = null;
         this._statBound = false;
 
-        // Charge component handles storing shots while the fire key is held
-        // if a statSystem is available on weaponFactory consumer (player) it will be replaced by player wiring;
-        // create with defaults but allow replace from Player
         this.chargeComponent = new ChargeComponent({
             maxChargeTime: config.maxChargeTime || 5000,
             maxStoredShots: config.maxStoredShots || 20,
             chargeRate: config.chargeRate || 1
         });
 
-        // Exposed charging state for UI / Player render
-        // No duplicated state here — ChargeComponent is authoritative.
         this.chargedBullets = 0;
         this.maxChargeTime = this.chargeComponent.base.maxChargeTime || (config.maxChargeTime || 5000);
+
+        // bind stat helper for easier testing & separation
+        this._statBinder = new StatBinder(this);
+        this._firingLogic = new FiringLogic(this);
     }
 
-    // Bind the weapon component to a player's statSystem so weapons react live to stat changes
     bindToPlayer(player) {
         this.owner = player;
-        // ensure current weapon knows its owner for projectile stat reads
         if (this.currentWeapon) this.currentWeapon.owner = player;
-        // prefer statSystem passed at construction, fallback to player's statSystem
-        const statSystem = this.statSystem || (player && player.statSystem ? player.statSystem : null);
-        // subscribe to stat changes once
-        if (statSystem && !this._statBound) {
-            this._statBound = true;
-            statSystem.on('statChanged', (statId, oldVal, newVal) => {
-                // propagate core stats to current weapon and components immediately
-                if (statId === 'damage' && this.currentWeapon && typeof newVal === 'number') {
-                    try { this.currentWeapon.damage = newVal; } catch(e){}
-                } else if (statId === 'fireRate' && this.currentWeapon && typeof newVal === 'number') {
-                    // statSystem stores shots-per-second; convert to ms between shots
-                    try { this.currentWeapon.fireRate = 1000 / Math.max(0.0001, newVal); } catch(e){}
-                } else if (statId === 'criticalChance' || statId === 'criticalDamage') {
-                    // nothing to set directly on weapon here since BaseWeapon.createProjectile reads owner.statSystem,
-                    // but keep for future direct mappings
-                }
-            });
-        }
-    }
-
-    createFallbackWeapon(weaponType, config = {}) {
-        // Basic fallback weapon creation
-        const weaponConfigs = {
-            single: { name: 'Single Shot', damage: 1, fireRate: 150, projectileSpeed: 10, projectileColor: '#00ffff' },
-            burst: { name: 'Burst Fire', damage: 1, fireRate: 400, projectileSpeed: 10, projectileColor: '#ff9900', burstCount: 3, burstDelay: 50 },
-            spread: { name: 'Spread Shot', damage: 0.8, fireRate: 200, projectileSpeed: 10, projectileColor: '#00ff00', spreadCount: 5, spreadAngle: Math.PI / 6 },
-            rapid: { name: 'Rapid Fire', damage: 0.6, fireRate: 60, projectileSpeed: 12, projectileColor: '#ffff00' },
-            homing: { name: 'Homing Missile', damage: 2, fireRate: 300, projectileSpeed: 8, projectileColor: '#ff00ff', turnSpeed: 0.05 }
-        };
-
-        const weaponConfig = weaponConfigs[weaponType] || weaponConfigs.single;
-        return {
-            ...weaponConfig,
-            ...config,
-            lastFireTime: 0,
-            bullets: [],
-            update: function(deltaTime) {
-                this.bullets.forEach(bullet => {
-                    bullet.x += bullet.vx;
-                    bullet.y += bullet.vy;
-                    if (bullet.x < -10 || bullet.x > 810 || bullet.y < -10 || bullet.y > 610) {
-                        bullet.alive = false;
-                    }
-                });
-                this.bullets = this.bullets.filter(bullet => bullet.alive);
-            },
-            fire: function(position, targetDirection = { x: 0, y: -1 }) {
-                const currentTime = Date.now();
-                if (currentTime - this.lastFireTime >= this.fireRate) {
-                    this.bullets.push({
-                        x: position.x,
-                        y: position.y,
-                        vx: targetDirection.x * this.projectileSpeed,
-                        vy: targetDirection.y * this.projectileSpeed,
-                        damage: this.damage,
-                        color: this.projectileColor,
-                        alive: true,
-                        width: 4,
-                        height: 10
-                    });
-                    this.lastFireTime = currentTime;
-                }
-            },
-            getBullets: function() { return this.bullets; },
-            clearBullets: function() { this.bullets = []; },
-            increaseDamage: function(amount) { this.damage += amount; },
-            setFireRateMultiplier: function(multiplier) { this.fireRate = this.fireRate * multiplier; }
-        };
+        this._statBinder.bindToPlayer(player);
     }
 
     update(deltaTime, inputState, position) {
-        // Delegate charging controls to ChargeComponent entirely.
-        if (inputState.shoot) {
-            // start charging if not already
-            if (!this.chargeComponent.isCharging()) {
-                this.chargeComponent.startCharging();
-            }
-        } else {
-            // on release, stopCharging returns release data when shots are released
-            if (this.chargeComponent.isCharging()) {
-                const release = this.chargeComponent.stopCharging();
-                if (release && this.currentWeapon) {
-                    const count = release.count;
-                    for (let i = 0; i < count; i++) {
-                        const angle = (Math.random() * Math.PI) - (Math.PI / 2);
-                        const dir = { x: Math.sin(angle), y: -Math.cos(angle) };
-                        const len = Math.hypot(dir.x, dir.y) || 1;
-                        dir.x /= len; dir.y /= len;
-                        const proj = this._createProjectileFromWeapon(position, dir);
-                        proj.vx += (Math.random() - 0.5) * 1.5;
-                        proj.vy += (Math.random() - 0.5) * 1.5;
-                        if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
-                        this.currentWeapon.bullets.push(proj);
-                    }
-                }
-            } else {
-                // not charging: normal auto-fire
-                if (this.currentWeapon) {
-                    // Ensure weapon has up-to-date owner reference so BaseWeapon crit resolution can access player.statSystem
-                    if (this.owner) this.currentWeapon.owner = this.owner;
-                    this.currentWeapon.fire(position);
-                }
-            }
-        }
-
-        // process auto-release (e.g. max charge timeout) from ChargeComponent
-        const autoRelease = this.chargeComponent.update();
-        if (autoRelease && this.currentWeapon) {
-            const count = autoRelease.count;
-            for (let i = 0; i < count; i++) {
-                const angle = (Math.random() * Math.PI) - (Math.PI / 2);
-                const dir = { x: Math.sin(angle), y: -Math.cos(angle) };
-                const len = Math.hypot(dir.x, dir.y) || 1;
-                dir.x /= len; dir.y /= len;
-                const proj = this._createProjectileFromWeapon(position, dir);
-                proj.vx += (Math.random() - 0.5) * 1.5;
-                proj.vy += (Math.random() - 0.5) * 1.5;
-                if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
-                this.currentWeapon.bullets.push(proj);
-            }
-            // if still holding shoot, restart charging automatically
-            if (inputState.shoot) {
-                this.chargeComponent.startCharging();
-            }
-        }
-
-        // Update exposed charged bullets count for UI feedback
+        this._firingLogic.update(deltaTime, inputState, position);
         this.chargedBullets = this.chargeComponent.getStoredShots();
-
-         if (this.currentWeapon) {
-             this.currentWeapon.update(deltaTime);
-         }
+        if (this.currentWeapon && typeof this.currentWeapon.update === 'function') {
+            this.currentWeapon.update(deltaTime);
+        }
     }
 
     switchWeapon(weaponType, config = {}) {
         if (this.currentWeapon) {
-            // Preserve some stats from current weapon
             const currentDamage = this.currentWeapon.damage;
             const currentFireRate = this.currentWeapon.fireRate;
-            
             if (this.weaponFactory && typeof this.weaponFactory.createWeapon === 'function') {
                 this.currentWeapon = this.weaponFactory.createWeapon(weaponType, {
                     damage: currentDamage,
@@ -188,36 +59,29 @@ export class WeaponComponent {
                     ...config
                 });
             } else {
-                this.currentWeapon = this.createFallbackWeapon(weaponType, {
+                this.currentWeapon = FallbackWeapon(weaponType, {
                     damage: currentDamage,
                     fireRate: currentFireRate,
                     ...config
                 });
             }
-            
             this.weaponType = weaponType;
-            // Ensure the new weapon has owner wired
             if (this.owner) this.currentWeapon.owner = this.owner;
         }
     }
 
     increaseDamage(amount) {
-        if (this.currentWeapon) {
-            this.currentWeapon.increaseDamage(amount);
-        }
+        if (this.currentWeapon) this.currentWeapon.increaseDamage(amount);
     }
 
     setFireRateMultiplier(multiplier) {
-        if (this.currentWeapon) {
-            this.currentWeapon.setFireRateMultiplier(multiplier);
-        }
+        if (this.currentWeapon) this.currentWeapon.setFireRateMultiplier(multiplier);
     }
 
     setChain(count, range = 100, damageReduction = 0.7) {
         if (this.currentWeapon && typeof this.currentWeapon.setChain === 'function') {
             this.currentWeapon.setChain(count, range, damageReduction);
         } else if (this.currentWeapon) {
-            // provide best-effort support for fallback weapon objects
             this.currentWeapon.chain = count;
             this.currentWeapon.chainRange = range;
             this.currentWeapon.chainDamageReduction = damageReduction;
@@ -225,31 +89,25 @@ export class WeaponComponent {
     }
 
     getBullets() {
-        return this.currentWeapon ? this.currentWeapon.getBullets() : [];
+        return this.currentWeapon ? (this.currentWeapon.getBullets ? this.currentWeapon.getBullets() : this.currentWeapon.bullets || []) : [];
     }
 
     clearBullets() {
-        if (this.currentWeapon) {
+        if (this.currentWeapon && typeof this.currentWeapon.clearBullets === 'function') {
             this.currentWeapon.clearBullets();
+        } else if (this.currentWeapon) {
+            this.currentWeapon.bullets = [];
         }
     }
 
-    getCurrentWeaponType() {
-        return this.weaponType;
-    }
-
-    getCurrentWeapon() {
-        return this.currentWeapon;
-    }
+    getCurrentWeaponType() { return this.weaponType; }
+    getCurrentWeapon() { return this.currentWeapon; }
 
     render(ctx) {
         if (this.currentWeapon && typeof this.currentWeapon.render === 'function') {
-            // Use weapon's own render if available (e.g. BaseWeapon subclasses)
             this.currentWeapon.render(ctx);
             return;
         }
-
-        // Fallback: draw plain bullet objects
         const bullets = this.getBullets();
         bullets.forEach(bullet => {
             ctx.save();
@@ -261,58 +119,7 @@ export class WeaponComponent {
         });
     }
 
-    // Helper: create a projectile that works for weapon instances or fallback weapon objects
     _createProjectileFromWeapon(position, direction) {
-        // If weapon exposes createProjectile (BaseWeapon subclasses), use it
-        if (this.currentWeapon && typeof this.currentWeapon.createProjectile === 'function') {
-            // ensure owner reference exists on weapon before creating projectile
-            if (this.owner) this.currentWeapon.owner = this.owner;
-            return this.currentWeapon.createProjectile(position, direction);
-        }
-
-        // Fallback: synthesize a projectile object using common properties
-        const speed = (this.currentWeapon && this.currentWeapon.projectileSpeed) || 10;
-        let damage = (this.currentWeapon && this.currentWeapon.damage) || 1;
-        const color = (this.currentWeapon && this.currentWeapon.projectileColor) || '#00ffff';
-
-        // Apply owner's StatSystem (critical chance/damage, damage overrides) if available
-        try {
-            const player = this.owner || (window.gameInstance && window.gameInstance.player);
-            if (player) {
-                const statSystem = player.statSystem || null;
-                const critChance = statSystem ? statSystem.getStatValue('criticalChance') : (player.statsComponent ? player.statsComponent.getCriticalChance() : (player.criticalChance || 0));
-                const critDamage = statSystem ? statSystem.getStatValue('criticalDamage') : (player.statsComponent ? player.statsComponent.getCriticalDamage() : (player.criticalDamage || 0));
-                const baseDamage = statSystem ? (statSystem.getStatValue('damage') || damage) : (player.damage || damage);
-                // determine crit
-                if (Math.random() < (critChance || 0)) {
-                    damage = baseDamage * (1 + (critDamage || 0));
-                } else {
-                    damage = baseDamage;
-                }
-            }
-        } catch (e) {
-            // silent fallback to previously computed damage
-        }
-
-        return {
-            x: position.x,
-            y: position.y,
-            vx: direction.x * speed,
-            vy: direction.y * speed,
-            damage: damage,
-            color: (Math.random() < 0 ? '#ffff00' : color), // color left as-is for fallback (crit color handled above)
-            alive: true,
-            width: (this.currentWeapon && this.currentWeapon.bulletWidth) || 4,
-            height: (this.currentWeapon && this.currentWeapon.bulletHeight) || 10,
-            piercing: (this.currentWeapon && this.currentWeapon.piercing) || 0,
-            chain: (this.currentWeapon && this.currentWeapon.chain) || 0,
-            chainRange: (this.currentWeapon && this.currentWeapon.chainRange) || 100,
-            chainDamageReduction: (this.currentWeapon && this.currentWeapon.chainDamageReduction) || 0.7,
-            penetration: (this.currentWeapon && this.currentWeapon.penetration) || 0,
-            ricochet: (this.currentWeapon && this.currentWeapon.ricochet) || 0,
-            hitTargets: [],
-            remainingChains: (this.currentWeapon && this.currentWeapon.chain) || 0,
-            remainingRicochets: (this.currentWeapon && this.currentWeapon.ricochet) || 0
-        };
+        return ProjectileFactory.create(this, position, direction);
     }
 }
