@@ -10,6 +10,7 @@ export class Enemy extends Entity {
         this.fireRate = 2000;
         this.lastFireTime = 0;
         this.points = 10;
+        this.shoots = true; // NEW: default to allow shooting
         
         if (type === 'fast') {
             this.speed = 4;
@@ -32,6 +33,7 @@ export class Enemy extends Entity {
             this.startingX = x;
         } else {
             this.color = '#ff9900';
+            this.shoots = false; // Basic standard enemy: do not shoot
         }
         
         this.bullets = [];
@@ -51,7 +53,7 @@ export class Enemy extends Entity {
         }
         
         // Simple AI: shoot occasionally
-        if (Date.now() - this.lastFireTime > this.fireRate) {
+        if (this.shoots && Date.now() - this.lastFireTime > this.fireRate) {
             this.shoot();
             this.lastFireTime = Date.now();
         }
