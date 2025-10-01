@@ -39,26 +39,24 @@ export class BaseWeapon {
         let finalDamage = damage || this.damage;
         let finalColor = color || this.projectileColor;
         
-        // Prefer owner.statSystem values (single source of truth), fallback to legacy globals
-        const player = (this.owner) ? this.owner : (window.gameInstance && window.gameInstance.player ? window.gameInstance.player : null);
-        if (player) {
-            // Prefer StatSystem values (single source of truth), fallback to statsComponent or legacy props
-            const critChance = (player.statSystem && player.statSystem.getStatValue('criticalChance')) ??
-                               (player.statsComponent && player.statsComponent.getCriticalChance && player.statsComponent.getCriticalChance()) ??
-                               (player.criticalChance || 0.01);
-            const critDamage = (player.statSystem && player.statSystem.getStatValue('criticalDamage')) ??
-                               (player.statsComponent && player.statsComponent.getCriticalDamage && player.statsComponent.getCriticalDamage()) ??
-                               (player.criticalDamage || 0.5);
-            const baseDamage = (player.statSystem && player.statSystem.getStatValue('damage')) || (damage || this.damage);
-
-            if (Math.random() < critChance) {
-                finalDamage = baseDamage * (1 + critDamage);
-                finalColor = '#ffff00';
-            } else {
-                finalDamage = baseDamage;
-            }
+        // Strict: require owner -> statSystem. No legacy fallbacks allowed.
+        if (!this.owner || !this.owner.statSystem) {
+            throw new Error('BaseWeapon.createProjectile requires owner.statSystem to be present (no legacy fallbacks).');
         }
-
+        const statSystem = this.owner.statSystem;
+        const critChance = statSystem.getStatValue('criticalChance');
+        const critDamage = statSystem.getStatValue('criticalDamage');
+        const baseDamage = statSystem.getStatValue('damage');
+        if (typeof critChance !== 'number' || typeof critDamage !== 'number' || typeof baseDamage !== 'number') {
+            throw new Error('StatSystem must provide numeric values for criticalChance, criticalDamage and damage.');
+        }
+        if (Math.random() < critChance) {
+            finalDamage = baseDamage * (1 + critDamage);
+            finalColor = '#ffff00';
+        } else {
+            finalDamage = baseDamage;
+        }
+ 
         return {
             x: position.x,
             y: position.y,
