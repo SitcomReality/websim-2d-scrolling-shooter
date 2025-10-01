@@ -49,12 +49,7 @@ export class CollisionSystem {
                     if (enemy.takeDamage(damage)) {
                         enemies.splice(j, 1);
                         this.scoreGained += enemy.points;
-                        // Only award XP when enabled
-                        try {
-                            if (!this.gameState || !this.gameState.disableXPGain) {
-                                this.gameState.xp += enemy.points;
-                            }
-                        } catch (e) { /* ignore */ }
+                        this.gameState.xp += enemy.points;
                         particleSystem.createExplosion(enemy.x, enemy.y);
                         
                         const xpAmount = enemy.points;
@@ -144,8 +139,7 @@ export class CollisionSystem {
                 if (enemyIndex > -1) {
                     enemies.splice(enemyIndex, 1);
                     this.scoreGained += target.points;
-                    // Only award XP when enabled
-                    if (this.gameState && !this.gameState.disableXPGain) this.gameState.xp += target.points;
+                    if (this.gameState) this.gameState.xp += target.points;
                     if (particleSystem && typeof particleSystem.createExplosion === 'function') {
                         particleSystem.createExplosion(target.x, target.y);
                     }

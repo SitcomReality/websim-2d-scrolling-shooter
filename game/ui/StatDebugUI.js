@@ -149,7 +149,8 @@ export default class StatDebugUI {
             health: 100,
             damage: 1,
             speed: 3,
-            fireRate: 50,
+            // canonical shots-per-second default (was 50 ms-between-shots)
+            fireRate: 6,
             criticalChance: 0.1,
             criticalDamage: 0.5,
             luck: 1.0,

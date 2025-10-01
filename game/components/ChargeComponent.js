@@ -21,13 +21,13 @@ export class ChargeComponent {
     _applyStatDerivedValues() {
         try {
             if (!this.statSystem) return;
-            const fireRate = this.statSystem.getStatValue('fireRate') || 150; // ms per shot
+            // statSystem now stores fireRate as shots-per-second
+            const shotsPerSecond = this.statSystem.getStatValue('fireRate') || (1000 / 150); // fallback to ~6.66sps if weird
             const chargeSpeed = this.statSystem.getStatValue('chargeSpeed') || 1.0; // multiplier
             const maxChargeShots = Math.max(1, Math.round(this.statSystem.getStatValue('maxCharge') || 5));
 
-            // derive chargeRate as "shots per 100ms" proportional to (1000/fireRate) * chargeSpeed
-            const shotsPerSecond = (1000 / Math.max(1, fireRate)) * chargeSpeed;
-            const shotsPer100ms = shotsPerSecond / 10;
+            // derive chargeRate as "shots per 100ms" proportional to shotsPerSecond * chargeSpeed
+            const shotsPer100ms = (shotsPerSecond * chargeSpeed) / 10;
             this.base.chargeRate = Math.max(0.01, shotsPer100ms);
 
             // set max stored shots from stat
