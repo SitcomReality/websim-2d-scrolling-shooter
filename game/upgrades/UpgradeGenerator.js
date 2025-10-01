@@ -17,13 +17,27 @@ export class UpgradeGenerator {
         const proceduralCount = Math.random() < this.proceduralChance ? Math.floor(Math.random() * 2) + 1 : 0;
         const regularCount = Math.min(4 - proceduralCount, available.length);
 
-        // Add regular upgrades
-        for (let i = 0; i < regularCount; i++) {
-            const upgrade = available[Math.floor(Math.random() * available.length)];
+        // Add regular upgrades (sample without replacement by upgrade.name)
+        const usedKeys = new Set();
+        const pool = available.slice();
+        let attempts = 0;
+        while (choices.length < regularCount && pool.length > 0 && attempts < 200) {
+            attempts++;
+            const idx = Math.floor(Math.random() * pool.length);
+            const candidate = pool[idx];
+            const key = candidate.name || candidate.upgradeName || JSON.stringify(candidate); // defensive keying
+            if (usedKeys.has(key)) {
+                // remove this candidate from pool and continue
+                pool.splice(idx, 1);
+                continue;
+            }
+            usedKeys.add(key);
+            pool.splice(idx, 1);
+
             const rarity = this.rollRarityWithLuck(luck);
-            const values = upgrade.getValues(rarity);
+            const values = candidate.getValues(rarity);
             choices.push({
-                upgrade: upgrade,
+                upgrade: candidate,
                 rarity: rarity,
                 values: values
             });
@@ -33,7 +47,12 @@ export class UpgradeGenerator {
         for (let i = 0; i < proceduralCount; i++) {
             const proceduralUpgrade = this.generateProceduralUpgrade(level, luck);
             if (proceduralUpgrade) {
-                choices.push(proceduralUpgrade);
+                const key = proceduralUpgrade.upgrade && proceduralUpgrade.upgrade.name ? proceduralUpgrade.upgrade.name : (proceduralUpgrade.upgradeName || `procedural_${i}`);
+                // ensure procedural upgrade doesn't duplicate an already used stat
+                if (!usedKeys.has(key)) {
+                    usedKeys.add(key);
+                    choices.push(proceduralUpgrade);
+                }
             }
         }
 
