@@ -47,16 +47,9 @@ export class BaseWeapon {
         const statSystem = player.statSystem;
         if (!statSystem) throw new Error('BaseWeapon.createProjectile: owner.statSystem is required');
 
-        const critChance = statSystem.getStatValue('criticalChance');
-        const critDamage = statSystem.getStatValue('criticalDamage');
+        // Only apply base damage here; crits are resolved centrally in _resolveCritical
         const baseDamage = statSystem.getStatValue('damage');
-
-        if (Math.random() < critChance) {
-            finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage) * (1 + critDamage);
-            finalColor = '#ffff00';
-        } else {
-            finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage);
-        }
+        finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage);
 
         return {
             x: position.x,
@@ -68,7 +61,7 @@ export class BaseWeapon {
             alive: true,
             width: 4,
             height: 10,
-            isCritical: finalColor === '#ffff00',
+            isCritical: false,
             piercing: this.piercing,
             chain: this.chain,
             chainRange: this.chainRange,

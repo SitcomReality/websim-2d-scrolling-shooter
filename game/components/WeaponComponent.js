@@ -267,7 +267,9 @@ export class WeaponComponent {
         if (this.currentWeapon && typeof this.currentWeapon.createProjectile === 'function') {
             // ensure owner reference exists on weapon before creating projectile
             if (this.owner) this.currentWeapon.owner = this.owner;
-            return this.currentWeapon.createProjectile(position, direction);
+            const p = this.currentWeapon.createProjectile(position, direction);
+            if (typeof this.currentWeapon._resolveCritical === 'function') this.currentWeapon._resolveCritical(p);
+            return p;
         }
 
         // Fallback: synthesize a projectile object using common properties
