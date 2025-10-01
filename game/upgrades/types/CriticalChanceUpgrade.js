@@ -21,12 +21,10 @@ export class CriticalChanceUpgrade extends BaseUpgrade {
 
     apply(player, values) {
         const chanceIncrease = values.criticalChance || values[this.id] || values.common;
-        if (player.statSystem) {
-            player.statSystem.addModifier('criticalChance', {
-                type: 'flat',
-                value: chanceIncrease,
-                source: this.id
-            });
+        if (player.statsComponent) {
+            player.statsComponent.increaseCriticalChance(chanceIncrease);
+        } else {
+            player.criticalChance = (player.criticalChance || 0.01) + chanceIncrease;
         }
     }
 

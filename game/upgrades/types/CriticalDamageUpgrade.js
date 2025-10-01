@@ -21,12 +21,10 @@ export class CriticalDamageUpgrade extends BaseUpgrade {
 
     apply(player, values) {
         const damageIncrease = values.criticalDamage || values[this.id] || values.common;
-        if (player.statSystem) {
-            player.statSystem.addModifier('criticalDamage', {
-                type: 'flat',
-                value: damageIncrease,
-                source: this.id
-            });
+        if (player.statsComponent) {
+            player.statsComponent.increaseCriticalDamage(damageIncrease);
+        } else {
+            player.criticalDamage = (player.criticalDamage || 0.5) + damageIncrease;
         }
     }
 

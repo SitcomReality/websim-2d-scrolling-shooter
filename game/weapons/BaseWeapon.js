@@ -39,22 +39,36 @@ export class BaseWeapon {
         const vx = direction.x * this.projectileSpeed;
         const vy = direction.y * this.projectileSpeed;
 
-        // Create base projectile without crit logic (will be applied by _resolveCritical)
+        let finalDamage = damage || this.damage;
+        let finalColor = color || this.projectileColor;
+        
+        // Use owner's statSystem only (no legacy/global fallbacks)
         const player = this.owner;
-        const statSystem = player?.statSystem;
-        const baseDamage = statSystem ? statSystem.getStatValue('damage') : (damage || this.damage);
+        const statSystem = player.statSystem;
+        if (!statSystem) throw new Error('BaseWeapon.createProjectile: owner.statSystem is required');
+
+        const critChance = statSystem.getStatValue('criticalChance');
+        const critDamage = statSystem.getStatValue('criticalDamage');
+        const baseDamage = statSystem.getStatValue('damage');
+
+        if (Math.random() < critChance) {
+            finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage) * (1 + critDamage);
+            finalColor = '#ffff00';
+        } else {
+            finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage);
+        }
 
         return {
             x: position.x,
             y: position.y,
             vx: vx,
             vy: vy,
-            damage: baseDamage,
-            color: color || this.projectileColor,
+            damage: finalDamage,
+            color: finalColor,
             alive: true,
             width: 4,
             height: 10,
-            isCritical: false,
+            isCritical: finalColor === '#ffff00',
             piercing: this.piercing,
             chain: this.chain,
             chainRange: this.chainRange,
@@ -71,21 +85,19 @@ export class BaseWeapon {
     _resolveCritical(projectile) {
         // Use owner.statSystem exclusively; throw if missing to surface integration issues
         const player = this.owner;
-        if (!player || !player.statSystem) {
-             console.warn('BaseWeapon._resolveCritical: owner.statSystem is required');
-             return;
-        }
+        if (!player || !player.statSystem) throw new Error('BaseWeapon._resolveCritical: owner.statSystem is required');
 
         const statSystem = player.statSystem;
         const critChance = statSystem.getStatValue('criticalChance');
         const critDamage = statSystem.getStatValue('criticalDamage');
+        const baseDamage = statSystem.getStatValue('damage');
 
         if (Math.random() < critChance) {
-            // A critical hit should multiply the projectile's current damage.
-            projectile.damage *= (1 + critDamage);
+            projectile.damage = (baseDamage !== undefined ? baseDamage : projectile.damage) * (1 + critDamage);
             projectile.color = '#ffff00';
             projectile.isCritical = true;
         } else {
+            projectile.damage = (baseDamage !== undefined ? baseDamage : projectile.damage);
             projectile.isCritical = false;
         }
     }
