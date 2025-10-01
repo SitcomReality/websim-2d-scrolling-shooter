@@ -42,24 +42,20 @@ export class BaseWeapon {
         let finalDamage = damage || this.damage;
         let finalColor = color || this.projectileColor;
         
-        // Prefer owner.statSystem values (single source of truth), fallback to legacy globals
-        const player = (this.owner) ? this.owner : (window.gameInstance && window.gameInstance.player ? window.gameInstance.player : null);
-        if (player) {
-            // Prefer StatSystem values (single source of truth), fallback to statsComponent or legacy props
-            const critChance = (player.statSystem && player.statSystem.getStatValue('criticalChance')) ??
-                               (player.statsComponent && player.statsComponent.getCriticalChance && player.statsComponent.getCriticalChance()) ??
-                               (player.criticalChance || 0.01);
-            const critDamage = (player.statSystem && player.statSystem.getStatValue('criticalDamage')) ??
-                               (player.statsComponent && player.statsComponent.getCriticalDamage && player.statsComponent.getCriticalDamage()) ??
-                               (player.criticalDamage || 0.5);
-            const baseDamage = (player.statSystem && player.statSystem.getStatValue('damage')) || (damage || this.damage);
+        // Use owner's statSystem only (no legacy/global fallbacks)
+        const player = this.owner;
+        const statSystem = player.statSystem;
+        if (!statSystem) throw new Error('BaseWeapon.createProjectile: owner.statSystem is required');
 
-            if (Math.random() < critChance) {
-                finalDamage = baseDamage * (1 + critDamage);
-                finalColor = '#ffff00';
-            } else {
-                finalDamage = baseDamage;
-            }
+        const critChance = statSystem.getStatValue('criticalChance');
+        const critDamage = statSystem.getStatValue('criticalDamage');
+        const baseDamage = statSystem.getStatValue('damage');
+
+        if (Math.random() < critChance) {
+            finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage) * (1 + critDamage);
+            finalColor = '#ffff00';
+        } else {
+            finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage);
         }
 
         return {
@@ -87,27 +83,22 @@ export class BaseWeapon {
 
     // Centralized crit resolution: uses owner.statSystem (preferred) or fallbacks to set damage/color/isCritical
     _resolveCritical(projectile) {
-        try {
-            const player = (this.owner) ? this.owner : (window.gameInstance && window.gameInstance.player ? window.gameInstance.player : null);
-            if (!player) return;
+        // Use owner.statSystem exclusively; throw if missing to surface integration issues
+        const player = this.owner;
+        if (!player || !player.statSystem) throw new Error('BaseWeapon._resolveCritical: owner.statSystem is required');
 
-            const statSystem = player.statSystem || null;
-            const critChance = statSystem ? (statSystem.getStatValue('criticalChance') || 0) :
-                              (player.statsComponent && player.statsComponent.getCriticalChance ? player.statsComponent.getCriticalChance() : (player.criticalChance || 0));
-            const critDamage = statSystem ? (statSystem.getStatValue('criticalDamage') || 0) :
-                              (player.statsComponent && player.statsComponent.getCriticalDamage ? player.statsComponent.getCriticalDamage() : (player.criticalDamage || 0));
-            const baseDamage = statSystem ? (statSystem.getStatValue('damage') || projectile.damage || this.damage) : (player.damage || projectile.damage || this.damage);
+        const statSystem = player.statSystem;
+        const critChance = statSystem.getStatValue('criticalChance');
+        const critDamage = statSystem.getStatValue('criticalDamage');
+        const baseDamage = statSystem.getStatValue('damage');
 
-            if (Math.random() < (critChance || 0)) {
-                projectile.damage = baseDamage * (1 + (critDamage || 0));
-                projectile.color = '#ffff00';
-                projectile.isCritical = true;
-            } else {
-                projectile.damage = baseDamage;
-                projectile.isCritical = false;
-            }
-        } catch (e) {
-            // silent fallback
+        if (Math.random() < critChance) {
+            projectile.damage = (baseDamage !== undefined ? baseDamage : projectile.damage) * (1 + critDamage);
+            projectile.color = '#ffff00';
+            projectile.isCritical = true;
+        } else {
+            projectile.damage = (baseDamage !== undefined ? baseDamage : projectile.damage);
+            projectile.isCritical = false;
         }
     }
 
