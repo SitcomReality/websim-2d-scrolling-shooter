@@ -93,7 +93,9 @@ export class CollisionSystem {
                         }
                     }
                     
-                    this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, 'physical');
+                    // Show damage text with crit styling if applicable
+                    const damageType = bullet.isCritical ? 'critical' : 'physical';
+                    this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, damageType);
                     
                     // Handle chaining
                     if (bullet.chain > 0 && bullet.remainingChains > 0) {

@@ -1,0 +1,6 @@
+const critChance = player.statSystem ? player.statSystem.getStatValue('criticalChance') : 
+                   player.statsComponent ? player.statsComponent.getCriticalChance() : 
+                   player.criticalChance || 0.01;
+const critDamage = player.statSystem ? player.statSystem.getStatValue('criticalDamage') : 
+                   player.statsComponent ? player.statsComponent.getCriticalDamage() : 
+                   player.criticalDamage || 0.5;
