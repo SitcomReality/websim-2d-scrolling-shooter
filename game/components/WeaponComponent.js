@@ -19,6 +19,9 @@ export class WeaponComponent {
         this.owner = null; // will be wired by PlayerSetup to reference the Player instance
         this._statBound = false;
 
+        // If constructed with an owner, bind immediately so weapons read statSystem without globals
+        if (config.owner) this.bindToPlayer(config.owner);
+
         // Charge component handles storing shots while the fire key is held
         // if a statSystem is available on weaponFactory consumer (player) it will be replaced by player wiring;
         // create with defaults but allow replace from Player
