@@ -45,6 +45,25 @@ export class CollisionSystem {
                     } else {
                         bullet.alive = false;
                     }
+
+                    // Apply lifesteal: heal a fraction of damage dealt (reads from StatSystem or fallbacks)
+                    try {
+                        const lifesteal = (player && player.statSystem && typeof player.statSystem.getStatValue === 'function')
+                            ? (player.statSystem.getStatValue('lifesteal') || 0)
+                            : (player.lifesteal || 0);
+                        if (lifesteal > 0 && player) {
+                            const healAmount = damage * lifesteal;
+                            if (typeof player.heal === 'function') {
+                                player.heal(healAmount);
+                            } else if (player.health !== undefined) {
+                                const maxH = (player.maxHealth !== undefined) ? player.maxHealth : (window.gameInstance?.gameState?.maxHealth || 100);
+                                player.health = Math.min(maxH, (player.health || 0) + healAmount);
+                                if (window.gameInstance && window.gameInstance.gameState) window.gameInstance.gameState.health = player.health;
+                            }
+                        }
+                    } catch (e) {
+                        // fail silently to avoid breaking collision loop
+                    }
                     
                     if (enemy.takeDamage(damage)) {
                         enemies.splice(j, 1);
