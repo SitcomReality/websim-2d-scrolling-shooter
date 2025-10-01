@@ -21,11 +21,13 @@ export class CriticalChanceUpgrade extends BaseUpgrade {
 
     apply(player, values) {
         const chanceIncrease = values.criticalChance || values[this.id] || values.common;
-        if (player.statsComponent) {
-            player.statsComponent.increaseCriticalChance(chanceIncrease);
-        } else {
-            player.criticalChance = (player.criticalChance || 0.01) + chanceIncrease;
+        // Apply via central StatSystem only
+        const statSystem = player && player.statSystem;
+        if (!statSystem || typeof statSystem.getStatValue !== 'function') {
+            throw new Error('CriticalChanceUpgrade.apply: player.statSystem is required');
         }
+        const current = statSystem.getStatValue('criticalChance') || 0;
+        statSystem.setBaseValue('criticalChance', current + chanceIncrease);
     }
 
     getDescription(values) {
