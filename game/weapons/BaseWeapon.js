@@ -32,7 +32,28 @@ export class BaseWeapon {
     }
 
     createProjectiles(position, targetDirection) {
-        return [this.createProjectile(position, targetDirection)];
+        // Base single projectile; if owner's statSystem provides multishot, emit extra projectiles.
+        const primary = this.createProjectile(position, targetDirection);
+        const projectiles = [primary];
+
+        const player = this.owner;
+        const statSystem = player && player.statSystem ? player.statSystem : null;
+        if (statSystem) {
+            const msCount = Math.max(0, Math.round(statSystem.getStatValue('multishot_count') || 0));
+            const msPenalty = typeof statSystem.getStatValue('multishot_damage_penalty') === 'number' ? statSystem.getStatValue('multishot_damage_penalty') : -0.25;
+            // create extra projectiles offset horizontally
+            for (let i = 0; i < msCount; i++) {
+                const offset = (i + 1) * 6; // horizontal spacing
+                // left and right for each count
+                const leftDir = { x: targetDirection.x, y: targetDirection.y };
+                const rightDir = { x: targetDirection.x, y: targetDirection.y };
+                const leftProj = this.createProjectile({ x: position.x - offset, y: position.y }, leftDir, primary.damage * (1 + msPenalty), primary.color);
+                const rightProj = this.createProjectile({ x: position.x + offset, y: position.y }, rightDir, primary.damage * (1 + msPenalty), primary.color);
+                projectiles.push(leftProj, rightProj);
+            }
+        }
+
+        return projectiles;
     }
 
     createProjectile(position, direction, damage = null, color = null) {

@@ -32,6 +32,9 @@ export class WeaponComponent {
         // bind stat helper for easier testing & separation
         this._statBinder = new StatBinder(this);
         this._firingLogic = new FiringLogic(this);
+        // side-shot timer for Flank Cannons (fires independently and should continue while charging)
+        this._sideShotAccumulator = 0;
+        this._lastSideShot = Date.now();
     }
 
     bindToPlayer(player) {
@@ -45,6 +48,33 @@ export class WeaponComponent {
         this.chargedBullets = this.chargeComponent.getStoredShots();
         if (this.currentWeapon && typeof this.currentWeapon.update === 'function') {
             this.currentWeapon.update(deltaTime);
+        }
+        // Side-shot handling: independent fire stream from Flank Cannons; continues while charging
+        try {
+            const player = this.owner;
+            const statSystem = player && player.statSystem ? player.statSystem : null;
+            if (statSystem) {
+                const sideshotMultiplier = statSystem.getStatValue('sideshot_fire_rate_multiplier') || 0;
+                if (sideshotMultiplier > 0) {
+                    // currentWeapon.fireRate is ms between shots; sideshot fires at a fraction (multiplier) of that -> interval = baseMs / multiplier
+                    const baseMs = (this.currentWeapon && this.currentWeapon.fireRate) ? this.currentWeapon.fireRate : 150;
+                    const interval = Math.max(8, baseMs / Math.max(0.0001, sideshotMultiplier));
+                    const now = Date.now();
+                    if (now - this._lastSideShot >= interval) {
+                        this._lastSideShot = now;
+                        // create two side projectiles left/right with damage penalty
+                        const penalty = typeof statSystem.getStatValue('sideshot_damage_penalty') === 'number' ? statSystem.getStatValue('sideshot_damage_penalty') : -0.25;
+                        const damageBase = (player && player.statSystem) ? (player.statSystem.getStatValue('damage') || this.currentWeapon.damage) : this.currentWeapon.damage;
+                        const sideDamage = damageBase * (1 + penalty);
+                        const left = this._createProjectileFromWeapon({ x: position.x - 18, y: position.y }, { x: -0.15, y: -1 });
+                        const right = this._createProjectileFromWeapon({ x: position.x + 18, y: position.y }, { x: 0.15, y: -1 });
+                        if (left) { left.damage = sideDamage; left.color = left.color || '#aaaaaa'; if (this.currentWeapon && this.currentWeapon.bullets) this.currentWeapon.bullets.push(left); }
+                        if (right) { right.damage = sideDamage; right.color = right.color || '#aaaaaa'; if (this.currentWeapon && this.currentWeapon.bullets) this.currentWeapon.bullets.push(right); }
+                    }
+                }
+            }
+        } catch (e) {
+            // don't allow side-shot errors to interrupt main firing
         }
     }
 

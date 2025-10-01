@@ -290,6 +290,54 @@ ItemFactory._items = new Map([
             }
         },
         onLoad: null
+    }],
+
+    // Duplicator Module - multi-shot on-fire upgrade
+    ['duplicator_module', {
+        id: 'duplicator_module',
+        name: 'Duplicator Module',
+        cost: 220,
+        description: 'Adds extra projectiles to each shot (multishot) and registers multishot stats.',
+        category: 'weapon',
+        definesStats: [
+            { id: 'multishot_count', name: 'Multishot Count', baseValue: 1, description: 'Extra projectiles per shot', category: 'offensive', upgradeWeight: 0.6, maxValue: 6 },
+            { id: 'multishot_damage_penalty', name: 'Multishot Damage Penalty', baseValue: -0.25, description: 'Multiplier applied to extra projectile damage (negative = reduction)', category: 'offensive', upgradeWeight: 0.2, maxValue: 0 }
+        ],
+        dependencies: [],
+        conflictsWith: [],
+        onActivate: (player, { statSystem }) => {
+            if (statSystem) {
+                try {
+                    statSystem.registerStat({ id: 'multishot_count', name: 'Multishot Count', baseValue: 1, category: 'offensive', upgradeWeight: 0.6 });
+                    statSystem.registerStat({ id: 'multishot_damage_penalty', name: 'Multishot Damage Penalty', baseValue: -0.25, category: 'offensive', upgradeWeight: 0.2 });
+                } catch (e) { /* ignore registration errors */ }
+            }
+        },
+        onLoad: null
+    }],
+
+    // Flank Cannons - side-shot on-fire upgrade (fires while charging)
+    ['flank_cannons', {
+        id: 'flank_cannons',
+        name: 'Flank Cannons',
+        cost: 240,
+        description: 'Fires weaker side projectiles continuously (including during charge) and registers sideshot stats.',
+        category: 'weapon',
+        definesStats: [
+            { id: 'sideshot_damage_penalty', name: 'Sideshot Damage Penalty', baseValue: -0.25, description: 'Damage multiplier for side projectiles (negative = reduction)', category: 'offensive', upgradeWeight: 0.3, maxValue: 0 },
+            { id: 'sideshot_fire_rate_multiplier', name: 'Sideshot Fire Rate Multiplier', baseValue: 0.5, description: 'Fraction of main gun rate for side shots', category: 'offensive', upgradeWeight: 0.3, maxValue: 2.0 }
+        ],
+        dependencies: [],
+        conflictsWith: [],
+        onActivate: (player, { statSystem }) => {
+            if (statSystem) {
+                try {
+                    statSystem.registerStat({ id: 'sideshot_damage_penalty', name: 'Sideshot Damage Penalty', baseValue: -0.25, category: 'offensive', upgradeWeight: 0.3 });
+                    statSystem.registerStat({ id: 'sideshot_fire_rate_multiplier', name: 'Sideshot Fire Rate Multiplier', baseValue: 0.5, category: 'offensive', upgradeWeight: 0.3 });
+                } catch (e) { /* ignore registration errors */ }
+            }
+        },
+        onLoad: null
     }]
 ]);
 
