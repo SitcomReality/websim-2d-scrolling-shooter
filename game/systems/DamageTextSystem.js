@@ -4,8 +4,8 @@ export class DamageTextSystem {
         this.xpTexts = []; // Added XP texts array
     }
 
-    addDamage(x, y, amount, damageType = 'physical', isCritical = false) {
-        this.damageTexts.push(new DamageText(x, y, amount, damageType, isCritical));
+    addDamage(x, y, amount, damageType = 'physical') {
+        this.damageTexts.push(new DamageText(x, y, amount, damageType));
     }
 
     addXP(x, y, amount) {
@@ -27,12 +27,11 @@ export class DamageTextSystem {
 }
 
 class DamageText {
-    constructor(x, y, amount, damageType, isCritical = false) {
+    constructor(x, y, amount, damageType) {
         this.x = x;
         this.y = y;
         this.amount = amount;
         this.damageType = damageType;
-        this.isCritical = !!isCritical;
         
         const colors = {
             physical: '#ff6666',
@@ -43,13 +42,12 @@ class DamageText {
             electric: '#ffff00'
         };
         
-        // make crits visually distinct
-        this.color = this.isCritical ? '#ffff00' : (colors[damageType] || colors.physical);
+        this.color = colors[damageType] || colors.physical;
         this.velocity = { x: (Math.random() - 0.5) * 2, y: -2 };
-        this.lifetime = this.isCritical ? 1400 : 1000; // crits linger slightly longer
-        this.maxLifetime = this.lifetime;
+        this.lifetime = 1000; // milliseconds
+        this.maxLifetime = 1000;
         this.alive = true;
-        this.fontSize = this.isCritical ? 20 : 16; // larger for crits
+        this.fontSize = 16;
     }
 
     update(deltaTime) {
@@ -64,16 +62,16 @@ class DamageText {
 
     render(ctx) {
         const alpha = this.lifetime / this.maxLifetime;
-        const fontSize = this.fontSize + (1 - alpha) * (this.isCritical ? 6 : 4);
+        const fontSize = this.fontSize + (1 - alpha) * 4;
         
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = this.color;
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'center';
-        ctx.shadowBlur = this.isCritical ? 18 : 10;
+        ctx.shadowBlur = 10;
         ctx.shadowColor = this.color;
-        ctx.fillText(`${this.isCritical ? 'CRIT ' : '-'}${this.amount}`, this.x, this.y);
+        ctx.fillText(`-${this.amount}`, this.x, this.y);
         ctx.restore();
     }
 }

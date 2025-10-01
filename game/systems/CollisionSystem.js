@@ -93,9 +93,7 @@ export class CollisionSystem {
                         }
                     }
                     
-                    // pass through whether the bullet was a critical hit (if available)
-                    const wasCrit = !!(bullet && bullet.isCritical);
-                    this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, 'physical', wasCrit);
+                    this.damageTextSystem.addDamage(enemy.x, enemy.y, damage, 'physical');
                     
                     // Handle chaining
                     if (bullet.chain > 0 && bullet.remainingChains > 0) {
@@ -170,8 +168,7 @@ export class CollisionSystem {
                 }
             }
             
-            // chaining damage isn't considered a crit here
-            this.damageTextSystem.addDamage(target.x, target.y, chainDamage, 'electric', false);
+            this.damageTextSystem.addDamage(target.x, target.y, chainDamage, 'electric');
             
             if (!bullet.hitTargets) bullet.hitTargets = [];
             bullet.hitTargets.push(target);
