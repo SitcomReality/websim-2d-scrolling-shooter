@@ -13,6 +13,18 @@ export function bindGameEvents(game) {
     game.uiManager.on('devMaxXP', () => game.handleDevMaxXP && game.handleDevMaxXP());
     game.uiManager.on('devKillAll', () => game.handleDevKillAll && game.handleDevKillAll());
 
+    // Toggle XP gain on/off
+    game.uiManager.on('devToggleXP', () => {
+        if (!game.gameState) return;
+        game.gameState.disableXPGain = !game.gameState.disableXPGain;
+        // update button text for clarity
+        const btn = document.getElementById('disable-xp-btn');
+        if (btn) {
+            btn.textContent = game.gameState.disableXPGain ? 'Enable XP Gain' : 'Disable XP Gain';
+            btn.style.background = game.gameState.disableXPGain ? '#444' : 'linear-gradient(135deg, #ff0066, #cc0052)';
+        }
+    });
+
     // Shop interactions
     game.uiManager.on('shopPurchaseRequested', (itemId) => {
         if (game.shopSystem) {

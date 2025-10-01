@@ -50,6 +50,12 @@ export class UIManager extends EventEmitter {
                 if (this.statDebugUI) this.statDebugUI.show();
             });
         }
+
+        // New: Disable XP toggle button
+        const disableXPBtn = document.getElementById('disable-xp-btn');
+        if (disableXPBtn) {
+            disableXPBtn.addEventListener('click', () => this.emit('devToggleXP'));
+        }
         
         // Dev panel events
         const levelUpBtn = document.getElementById('level-up-btn');
