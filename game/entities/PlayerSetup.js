@@ -31,6 +31,13 @@ export function initializePlayer(playerInstance, x = 400, y = 500, weaponFactory
     playerInstance.healthComponent = new HealthComponent(playerInstance.statSystem.getStatValue('maxHealth') || 100);
     playerInstance.movementComponent = new MovementComponent(playerInstance.statSystem.getStatValue('speed') || 3);
     playerInstance.weaponComponent = new WeaponComponent(weaponFactory, 'single', { damage: playerInstance.statSystem.getStatValue('damage') || 1, fireRate: 1000 / (playerInstance.statSystem.getStatValue('fireRate') || 20) });
+    // Wire weapon component to this player so weapons can read the statSystem via owner reference
+    if (playerInstance.weaponComponent && typeof playerInstance.weaponComponent.bindToPlayer === 'function') {
+        playerInstance.weaponComponent.bindToPlayer(playerInstance);
+    } else if (playerInstance.weaponComponent) {
+        // best-effort set owner/property for older fallback weapon components
+        playerInstance.weaponComponent.owner = playerInstance;
+    }
     playerInstance.statsComponent = new PlayerStatsComponent();
 
     // Charge component — derive parameters from statSystem (chargeSpeed & maxCharge)

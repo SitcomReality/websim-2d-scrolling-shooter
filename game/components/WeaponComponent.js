@@ -16,6 +16,8 @@ export class WeaponComponent {
         }
         
         this.weaponType = weaponType;
+        this.owner = null; // will be wired by PlayerSetup to reference the Player instance
+        this._statBound = false;
 
         // Charge component handles storing shots while the fire key is held
         // if a statSystem is available on weaponFactory consumer (player) it will be replaced by player wiring;
@@ -30,6 +32,29 @@ export class WeaponComponent {
         // No duplicated state here — ChargeComponent is authoritative.
         this.chargedBullets = 0;
         this.maxChargeTime = this.chargeComponent.base.maxChargeTime || (config.maxChargeTime || 5000);
+    }
+
+    // Bind the weapon component to a player's statSystem so weapons react live to stat changes
+    bindToPlayer(player) {
+        this.owner = player;
+        // ensure current weapon knows its owner for projectile stat reads
+        if (this.currentWeapon) this.currentWeapon.owner = player;
+        // subscribe to stat changes once
+        if (player && player.statSystem && !this._statBound) {
+            this._statBound = true;
+            player.statSystem.on('statChanged', (statId, oldVal, newVal) => {
+                // propagate core stats to current weapon and components immediately
+                if (statId === 'damage' && this.currentWeapon && typeof newVal === 'number') {
+                    try { this.currentWeapon.damage = newVal; } catch(e){}
+                } else if (statId === 'fireRate' && this.currentWeapon && typeof newVal === 'number') {
+                    // statSystem stores shots-per-second; convert to ms between shots
+                    try { this.currentWeapon.fireRate = 1000 / Math.max(0.0001, newVal); } catch(e){}
+                } else if (statId === 'criticalChance' || statId === 'criticalDamage') {
+                    // nothing to set directly on weapon here since BaseWeapon.createProjectile reads owner.statSystem,
+                    // but keep for future direct mappings
+                }
+            });
+        }
     }
 
     createFallbackWeapon(weaponType, config = {}) {
@@ -165,6 +190,8 @@ export class WeaponComponent {
             }
             
             this.weaponType = weaponType;
+            // Ensure the new weapon has owner wired
+            if (this.owner) this.currentWeapon.owner = this.owner;
         }
     }
 
@@ -232,6 +259,8 @@ export class WeaponComponent {
     _createProjectileFromWeapon(position, direction) {
         // If weapon exposes createProjectile (BaseWeapon subclasses), use it
         if (this.currentWeapon && typeof this.currentWeapon.createProjectile === 'function') {
+            // ensure owner reference exists on weapon before creating projectile
+            if (this.owner) this.currentWeapon.owner = this.owner;
             return this.currentWeapon.createProjectile(position, direction);
         }
 

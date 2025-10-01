@@ -39,8 +39,9 @@ export class BaseWeapon {
         let finalDamage = damage || this.damage;
         let finalColor = color || this.projectileColor;
         
-        if (window.gameInstance && window.gameInstance.player) {
-            const player = window.gameInstance.player;
+        // Prefer owner.statSystem values (single source of truth), fallback to legacy globals
+        const player = (this.owner) ? this.owner : (window.gameInstance && window.gameInstance.player ? window.gameInstance.player : null);
+        if (player) {
             // Prefer StatSystem values (single source of truth), fallback to statsComponent or legacy props
             const critChance = (player.statSystem && player.statSystem.getStatValue('criticalChance')) ??
                                (player.statsComponent && player.statsComponent.getCriticalChance && player.statsComponent.getCriticalChance()) ??

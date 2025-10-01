@@ -13,10 +13,10 @@ export class RapidFireWeapon extends BaseWeapon {
     }
 
     createProjectile(position, direction, damage = null, color = null) {
+        // ensure owner-based damage resolution happens in BaseWeapon
         const projectile = super.createProjectile(position, direction, damage, color);
         projectile.width = 3;
         projectile.height = 8;
         return projectile;
     }
 }
-

@@ -32,6 +32,11 @@ export function resetPlayerState(player) {
     player.y = player.movementComponent.position.y;
 
     player.weaponComponent = new WeaponComponent(player.weaponComponent?.weaponFactory || new (player.weaponComponent?.constructor || (function(){}))(), 'single', { damage: 1, fireRate: 1000 / (player.statSystem.getStatValue('fireRate') || 20) });
+    if (player.weaponComponent && typeof player.weaponComponent.bindToPlayer === 'function') {
+        player.weaponComponent.bindToPlayer(player);
+    } else if (player.weaponComponent) {
+        player.weaponComponent.owner = player;
+    }
     player.chargeComponent = new ChargeComponent({
         maxChargeTime: 5000,
         maxStoredShots: player.statSystem.getStatValue('maxCharge') || 8,
