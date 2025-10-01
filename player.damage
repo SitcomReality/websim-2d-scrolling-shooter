@@ -1,0 +1,2 @@
+set damage(v) { this.statSystem.setBaseValue('damage', v); }
+
