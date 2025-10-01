@@ -4,6 +4,18 @@ export default class FiringLogic {
     }
 
     _emitProjectiles(count, position) {
+        // Delegate charged release behavior to the active weapon so different weapons can implement unique patterns/synergies.
+        try {
+            const weapon = this.component.currentWeapon;
+            if (weapon && typeof weapon.fireChargedRelease === 'function') {
+                weapon.fireChargedRelease(count, position);
+                return;
+            }
+        } catch (e) {
+            // fall through to fallback below if delegation fails
+        }
+
+        // Fallback: approximate previous behavior using factory if weapon doesn't implement release
         for (let i = 0; i < count; i++) {
             const angle = (Math.random() * Math.PI) - (Math.PI / 2);
             const dir = { x: Math.sin(angle), y: -Math.cos(angle) };
@@ -44,4 +56,3 @@ export default class FiringLogic {
         }
     }
 }
-

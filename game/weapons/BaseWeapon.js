@@ -102,6 +102,28 @@ export class BaseWeapon {
         }
     }
 
+    // Charged-release default: fire the weapon's normal projectile pattern `count` times with a short stagger so charge feels like a barrage.
+    fireChargedRelease(count = 1, position = { x: 0, y: 0 }) {
+        const staggerMs = 40; // small delay between each volley for satisfying rhythm
+        for (let i = 0; i < count; i++) {
+            // schedule each volley; use closure to capture i
+            setTimeout(() => {
+                try {
+                    const projectiles = this.createProjectiles ? this.createProjectiles(position, { x: 0, y: -1 }) : [this.createProjectile(position, { x: 0, y: -1 })];
+                    projectiles.forEach(p => {
+                        // ensure critical resolution consistent with weapon rules
+                        try { this._resolveCritical(p); } catch (e) { /* allow resolution issues to surface during dev if statSystem missing */ }
+                        if (!this.bullets) this.bullets = [];
+                        this.bullets.push(p);
+                    });
+                } catch (e) {
+                    // ensure errors don't break game loop; log for debugging
+                    console.warn('fireChargedRelease failed', e);
+                }
+            }, i * staggerMs);
+        }
+    }
+
     update(deltaTime) {
         this.bullets.forEach(bullet => {
             bullet.x += bullet.vx;
