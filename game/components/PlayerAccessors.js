@@ -59,6 +59,11 @@ export const playerGettersSetters = {
             get() { return this.statSystem.getStatValue('lifesteal'); },
             set(v) { this.statSystem.setBaseValue('lifesteal', v); }
         });
+
+        Object.defineProperty(proto, 'luck', {
+            get() { return this.statSystem.getStatValue('luck'); },
+            set(v) { this.statSystem.setBaseValue('luck', v); }
+        });
     }
 };
 
