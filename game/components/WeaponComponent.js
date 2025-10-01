@@ -272,6 +272,8 @@ export class WeaponComponent {
         const speed = (this.currentWeapon && this.currentWeapon.projectileSpeed) || 10;
         let damage = (this.currentWeapon && this.currentWeapon.damage) || 1;
         const color = (this.currentWeapon && this.currentWeapon.projectileColor) || '#00ffff';
+        let projColor = color;
+        let projIsCritical = false;
 
         // Apply owner's StatSystem (critical chance/damage, damage overrides) if available
         try {
@@ -281,12 +283,15 @@ export class WeaponComponent {
                 const critChance = statSystem ? statSystem.getStatValue('criticalChance') : (player.statsComponent ? player.statsComponent.getCriticalChance() : (player.criticalChance || 0));
                 const critDamage = statSystem ? statSystem.getStatValue('criticalDamage') : (player.statsComponent ? player.statsComponent.getCriticalDamage() : (player.criticalDamage || 0));
                 const baseDamage = statSystem ? (statSystem.getStatValue('damage') || damage) : (player.damage || damage);
-                // determine crit
-                if (Math.random() < (critChance || 0)) {
+                const isCrit = Math.random() < (critChance || 0);
+                if (isCrit) {
                     damage = baseDamage * (1 + (critDamage || 0));
                 } else {
                     damage = baseDamage;
                 }
+                // ensure visual flag and color are set for downstream systems
+                projIsCritical = !!isCrit;
+                projColor = isCrit ? '#ffff00' : color;
             }
         } catch (e) {
             // silent fallback to previously computed damage
@@ -298,7 +303,8 @@ export class WeaponComponent {
             vx: direction.x * speed,
             vy: direction.y * speed,
             damage: damage,
-            color: (Math.random() < 0 ? '#ffff00' : color), // color left as-is for fallback (crit color handled above)
+            color: projColor || color,
+            isCritical: !!projIsCritical,
             alive: true,
             width: (this.currentWeapon && this.currentWeapon.bulletWidth) || 4,
             height: (this.currentWeapon && this.currentWeapon.bulletHeight) || 10,
