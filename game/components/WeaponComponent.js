@@ -3,6 +3,8 @@ import ChargeComponent from './ChargeComponent.js';
 export class WeaponComponent {
     constructor(weaponFactory, weaponType = 'single', config = {}) {
         this.weaponFactory = weaponFactory;
+        // store direct reference to statSystem when provided to avoid globals/late binding
+        this.statSystem = config.statSystem || null;
         
         // Create initial weapon - handle cases where factory might not have createWeapon method
         if (weaponFactory && typeof weaponFactory.createWeapon === 'function') {
@@ -18,9 +20,6 @@ export class WeaponComponent {
         this.weaponType = weaponType;
         this.owner = null; // will be wired by PlayerSetup to reference the Player instance
         this._statBound = false;
-
-        // If constructed with an owner, bind immediately so weapons read statSystem without globals
-        if (config.owner) this.bindToPlayer(config.owner);
 
         // Charge component handles storing shots while the fire key is held
         // if a statSystem is available on weaponFactory consumer (player) it will be replaced by player wiring;
@@ -42,10 +41,12 @@ export class WeaponComponent {
         this.owner = player;
         // ensure current weapon knows its owner for projectile stat reads
         if (this.currentWeapon) this.currentWeapon.owner = player;
+        // prefer statSystem passed at construction, fallback to player's statSystem
+        const statSystem = this.statSystem || (player && player.statSystem ? player.statSystem : null);
         // subscribe to stat changes once
-        if (player && player.statSystem && !this._statBound) {
+        if (statSystem && !this._statBound) {
             this._statBound = true;
-            player.statSystem.on('statChanged', (statId, oldVal, newVal) => {
+            statSystem.on('statChanged', (statId, oldVal, newVal) => {
                 // propagate core stats to current weapon and components immediately
                 if (statId === 'damage' && this.currentWeapon && typeof newVal === 'number') {
                     try { this.currentWeapon.damage = newVal; } catch(e){}
