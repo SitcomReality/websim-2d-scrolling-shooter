@@ -20,7 +20,7 @@ export class SidePanelManager {
             this.player.statSystem.getAllStats() :
             [
                 { id: 'speed', name: 'Speed', value: this.player.speed?.toFixed(1) || '5.0' },
-                { id: 'fireRate', name: 'Fire Rate', value: (this.player && this.player.fireRate) ? Number((this.player.fireRate).toFixed(2)) : (this.player.fireRate ? this.player.fireRate : '—'), unit: '/sec' },
+                { id: 'fireRate', name: 'Fire Rate', value: Math.round(this.player.fireRate || 20), unit: '/sec' },
                 { id: 'damage', name: 'Damage', value: this.player.damage || 1 },
                 { id: 'maxHealth', name: 'Max Health', value: this.player.maxHealth || 100, unit: 'HP' },
                 { id: 'healthPickupChance', name: 'Health Drop Chance', value: Math.round((this.player.healthPickupChance || 0.02) * 100), unit: '%' },

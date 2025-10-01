@@ -23,7 +23,11 @@ export const playerGettersSetters = {
 
         Object.defineProperty(proto, 'fireRate', {
             get() { return this.statSystem.getStatValue('fireRate'); },
-            set(v) { this.statSystem.setBaseValue('fireRate', v); try { if (this.weaponComponent && this.weaponComponent.currentWeapon) this.weaponComponent.currentWeapon.fireRate = v; } catch(e){} }
+            set(v) { 
+                // v is shots-per-second => set base and propagate to weapon as ms between shots
+                this.statSystem.setBaseValue('fireRate', v); 
+                try { if (this.weaponComponent && this.weaponComponent.currentWeapon) this.weaponComponent.currentWeapon.fireRate = 1000 / Math.max(0.0001, v); } catch(e){}
+            }
         });
 
         Object.defineProperty(proto, 'healthPickupChance', {
@@ -44,4 +48,3 @@ export const playerGettersSetters = {
 };
 
 export default playerGettersSetters;
-

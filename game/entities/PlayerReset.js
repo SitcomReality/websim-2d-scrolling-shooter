@@ -15,7 +15,7 @@ export function resetPlayerState(player) {
         { id: 'health', name: 'Health', baseValue: 100, description: 'Current health (managed by healthComponent)', category: 'defensive', upgradeWeight: 0 },
         { id: 'damage', name: 'Damage', baseValue: 1, description: 'Bullet damage', category: 'offensive', upgradeWeight: 0.9 },
         { id: 'speed', name: 'Speed', baseValue: 3, description: 'Movement speed', category: 'mobility', upgradeWeight: 0.7 },
-        { id: 'fireRate', name: 'Fire Rate', baseValue: 6, description: 'Shots per second', category: 'offensive', upgradeWeight: 0.6 },
+        { id: 'fireRate', name: 'Fire Rate', baseValue: 20, description: 'Shots per second', category: 'offensive', upgradeWeight: 0.6 },
         { id: 'criticalChance', name: 'Critical Chance', baseValue: 0.1, description: 'Chance to deal critical damage', category: 'offensive', upgradeWeight: 0.4 },
         { id: 'criticalDamage', name: 'Critical Damage', baseValue: 0.5, description: 'Extra damage multiplier on crit', category: 'offensive', upgradeWeight: 0.4 },
         { id: 'luck', name: 'Luck', baseValue: 1.0, description: 'Affects upgrade quality and reroll cost', category: 'utility', upgradeWeight: 0.5 },
@@ -31,7 +31,7 @@ export function resetPlayerState(player) {
     player.x = player.movementComponent.position.x;
     player.y = player.movementComponent.position.y;
 
-    player.weaponComponent = new WeaponComponent(player.weaponComponent?.weaponFactory || new (player.weaponComponent?.constructor || (function(){}))(), 'single', { damage: 1, fireRate: player.statSystem.getStatValue('fireRate') || 150 });
+    player.weaponComponent = new WeaponComponent(player.weaponComponent?.weaponFactory || new (player.weaponComponent?.constructor || (function(){}))(), 'single', { damage: 1, fireRate: 1000 / (player.statSystem.getStatValue('fireRate') || 20) });
     player.chargeComponent = new ChargeComponent({
         maxChargeTime: 5000,
         maxStoredShots: player.statSystem.getStatValue('maxCharge') || 8,

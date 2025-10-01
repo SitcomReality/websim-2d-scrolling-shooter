@@ -106,8 +106,8 @@ export default class StatDebugUI {
                             player.movementComponent.currentSpeed = newSpeed;
                         }
                         if (def.id === 'fireRate' && player && player.weaponComponent && player.weaponComponent.currentWeapon) {
-                            const newFR = statSystem.getStatValue('fireRate');
-                            try { player.weaponComponent.currentWeapon.fireRate = newFR; } catch(e){}
+                            const newSps = statSystem.getStatValue('fireRate');
+                            try { player.weaponComponent.currentWeapon.fireRate = 1000 / Math.max(0.0001, newSps); } catch(e){}
                         }
                         if (def.id === 'maxHealth' && player && player.healthComponent) {
                             const newMax = statSystem.getStatValue('maxHealth');
@@ -149,8 +149,7 @@ export default class StatDebugUI {
             health: 100,
             damage: 1,
             speed: 3,
-            // canonical shots-per-second default (was 50 ms-between-shots)
-            fireRate: 6,
+            fireRate: 50,
             criticalChance: 0.1,
             criticalDamage: 0.5,
             luck: 1.0,

@@ -28,34 +28,35 @@ export class FireRateUpgrade extends BaseUpgrade {
             if (statSystem && typeof statSystem.getDefinition === 'function') {
                 const def = statSystem.getDefinition('fireRate');
                 if (def) {
-                    // currentBase is shots-per-second now; invert multiplier because legacy values were lower-than-1 to speed up
-                    const currentBase = def.baseValue || statSystem.getStatValue('fireRate') || 6;
-                    // To keep existing upgrade value semantics (e.g. 0.9 meaning "10% faster"), divide by multiplier
-                    const newBase = currentBase / multiplier;
-                    statSystem.setBaseValue('fireRate', newBase);
+                    // currentBase is shots-per-second now; to make "multiplier < 1 => faster" invert multiplier when applying
+                    const currentBase = def.baseValue || statSystem.getStatValue('fireRate') || 20;
+                    // e.g. multiplier 0.9 (intend 10% faster) => newBase = currentBase / 0.9
+                    statSystem.setBaseValue('fireRate', currentBase / multiplier);
                 } else {
-                    // Register stat if missing, then apply (use sensible default shots/sec)
+                    // Register stat if somehow missing, then apply multiplier (assume default 20 sps)
                     statSystem.registerStat({
                         id: 'fireRate',
                         name: 'Fire Rate',
-                        baseValue: 6,
+                        baseValue: 20,
                         description: 'Shots per second',
                         category: 'offensive',
                         upgradeWeight: 0.6
                     });
-                    statSystem.setBaseValue('fireRate', (statSystem.getStatValue('fireRate') || 6) / multiplier);
+                    statSystem.setBaseValue('fireRate', (statSystem.getStatValue('fireRate') || 20) / multiplier);
                 }
                 return;
             }
         } catch (e) {
+            // fall through to legacy fallback if statSystem operations fail
             console.warn('FireRateUpgrade: statSystem apply failed, falling back', e);
         }
 
-        // Legacy fallback: player.fireRate used to be ms-between-shots; convert by inverting multiplier
+        // Legacy fallback for systems still reading player.fireRate directly
+        // convert existing ms-based value to shots/sec, apply inverse multiplier, then convert back to ms
         const currentMs = player.fireRate || 150;
         const currentSps = 1000 / currentMs;
         const newSps = currentSps / multiplier;
-        player.fireRate = 1000 / newSps; // keep legacy field as ms if used elsewhere
+        player.fireRate = 1000 / newSps;
     }
     
     getDescription(values) {

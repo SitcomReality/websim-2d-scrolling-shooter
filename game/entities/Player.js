@@ -81,13 +81,8 @@ export class Player extends Entity {
     get fireRate() { return this.statSystem.getStatValue('fireRate'); }
     set fireRate(value) { 
         this.statSystem.setBaseValue('fireRate', value);
-        // propagate to weapon instance (weapon.fireRate expects ms between shots)
-        try { 
-            if (this.weaponComponent && this.weaponComponent.currentWeapon) {
-                const ms = Math.max(1, Math.floor(1000 / value));
-                this.weaponComponent.currentWeapon.fireRate = ms;
-            } 
-        } catch(e){}
+        // propagate to weapon instance (fireRate is ms between shots)
+        try { if (this.weaponComponent && this.weaponComponent.currentWeapon) this.weaponComponent.currentWeapon.fireRate = value; } catch(e){}
     }
 
     get healthPickupChance() { return this.statsComponent.getHealthPickupChance(); }
