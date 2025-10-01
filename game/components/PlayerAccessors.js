@@ -44,6 +44,21 @@ export const playerGettersSetters = {
             get() { return this.statsComponent.isInvulnerable(); },
             set(v) { this.statsComponent.setInvulnerable(v); }
         });
+
+        Object.defineProperty(proto, 'criticalChance', {
+            get() { return this.statSystem.getStatValue('criticalChance'); },
+            set(v) { this.statSystem.setBaseValue('criticalChance', v); }
+        });
+
+        Object.defineProperty(proto, 'criticalDamage', {
+            get() { return this.statSystem.getStatValue('criticalDamage'); },
+            set(v) { this.statSystem.setBaseValue('criticalDamage', v); }
+        });
+
+        Object.defineProperty(proto, 'lifesteal', {
+            get() { return this.statSystem.getStatValue('lifesteal'); },
+            set(v) { this.statSystem.setBaseValue('lifesteal', v); }
+        });
     }
 };
 

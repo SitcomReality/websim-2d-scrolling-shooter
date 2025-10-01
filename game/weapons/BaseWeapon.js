@@ -41,16 +41,20 @@ export class BaseWeapon {
         
         if (window.gameInstance && window.gameInstance.player) {
             const player = window.gameInstance.player;
-            const critChance = player.statsComponent ? 
-                player.statsComponent.getCriticalChance() : 
-                (player.criticalChance || 0.01);
-            const critDamage = player.statsComponent ? 
-                player.statsComponent.getCriticalDamage() : 
-                (player.criticalDamage || 0.5);
+            // Prefer StatSystem values (single source of truth), fallback to statsComponent or legacy props
+            const critChance = (player.statSystem && player.statSystem.getStatValue('criticalChance')) ??
+                               (player.statsComponent && player.statsComponent.getCriticalChance && player.statsComponent.getCriticalChance()) ??
+                               (player.criticalChance || 0.01);
+            const critDamage = (player.statSystem && player.statSystem.getStatValue('criticalDamage')) ??
+                               (player.statsComponent && player.statsComponent.getCriticalDamage && player.statsComponent.getCriticalDamage()) ??
+                               (player.criticalDamage || 0.5);
+            const baseDamage = (player.statSystem && player.statSystem.getStatValue('damage')) || (damage || this.damage);
 
             if (Math.random() < critChance) {
-                finalDamage = (damage || this.damage) * (1 + critDamage);
+                finalDamage = baseDamage * (1 + critDamage);
                 finalColor = '#ffff00';
+            } else {
+                finalDamage = baseDamage;
             }
         }
 
