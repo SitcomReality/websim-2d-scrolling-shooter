@@ -139,6 +139,8 @@ export class WeaponComponent {
             } else {
                 // not charging: normal auto-fire
                 if (this.currentWeapon) {
+                    // Ensure weapon has up-to-date owner reference so BaseWeapon crit resolution can access player.statSystem
+                    if (this.owner) this.currentWeapon.owner = this.owner;
                     this.currentWeapon.fire(position);
                 }
             }
