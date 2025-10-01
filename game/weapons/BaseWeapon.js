@@ -39,25 +39,18 @@ export class BaseWeapon {
         const vx = direction.x * this.projectileSpeed;
         const vy = direction.y * this.projectileSpeed;
 
-        let finalDamage = damage || this.damage;
-        let finalColor = color || this.projectileColor;
-        
-        // Use owner's statSystem only (no legacy/global fallbacks)
+        // Create base projectile without crit logic (will be applied by _resolveCritical)
         const player = this.owner;
-        const statSystem = player.statSystem;
-        if (!statSystem) throw new Error('BaseWeapon.createProjectile: owner.statSystem is required');
-
-        // Only apply base damage here; crits are resolved centrally in _resolveCritical
-        const baseDamage = statSystem.getStatValue('damage');
-        finalDamage = (baseDamage !== undefined ? baseDamage : finalDamage);
+        const statSystem = player?.statSystem;
+        const baseDamage = statSystem ? statSystem.getStatValue('damage') : (damage || this.damage);
 
         return {
             x: position.x,
             y: position.y,
             vx: vx,
             vy: vy,
-            damage: finalDamage,
-            color: finalColor,
+            damage: baseDamage,
+            color: color || this.projectileColor,
             alive: true,
             width: 4,
             height: 10,

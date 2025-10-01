@@ -130,6 +130,10 @@ export class WeaponComponent {
                         const len = Math.hypot(dir.x, dir.y) || 1;
                         dir.x /= len; dir.y /= len;
                         const proj = this._createProjectileFromWeapon(position, dir);
+                        // Apply crit resolution to charge burst projectiles
+                        if (this.currentWeapon && typeof this.currentWeapon._resolveCritical === 'function') {
+                            this.currentWeapon._resolveCritical(proj);
+                        }
                         proj.vx += (Math.random() - 0.5) * 1.5;
                         proj.vy += (Math.random() - 0.5) * 1.5;
                         if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
@@ -156,6 +160,10 @@ export class WeaponComponent {
                 const len = Math.hypot(dir.x, dir.y) || 1;
                 dir.x /= len; dir.y /= len;
                 const proj = this._createProjectileFromWeapon(position, dir);
+                // Apply crit resolution to auto-released charge projectiles
+                if (this.currentWeapon && typeof this.currentWeapon._resolveCritical === 'function') {
+                    this.currentWeapon._resolveCritical(proj);
+                }
                 proj.vx += (Math.random() - 0.5) * 1.5;
                 proj.vy += (Math.random() - 0.5) * 1.5;
                 if (!this.currentWeapon.bullets) this.currentWeapon.bullets = [];
@@ -267,9 +275,7 @@ export class WeaponComponent {
         if (this.currentWeapon && typeof this.currentWeapon.createProjectile === 'function') {
             // ensure owner reference exists on weapon before creating projectile
             if (this.owner) this.currentWeapon.owner = this.owner;
-            const p = this.currentWeapon.createProjectile(position, direction);
-            if (typeof this.currentWeapon._resolveCritical === 'function') this.currentWeapon._resolveCritical(p);
-            return p;
+            return this.currentWeapon.createProjectile(position, direction);
         }
 
         // Fallback: synthesize a projectile object using common properties
