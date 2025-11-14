@@ -52,7 +52,8 @@ export default class FiringLogic {
         const autoRelease = cc.update();
         if (autoRelease && this.component.currentWeapon) {
             this._emitProjectiles(autoRelease.count, position);
-            if (inputState.shoot) cc.startCharging();
+            // Do NOT auto-restart charging when the button remains held.
+            // Recharging must require the player to release and then press again.
         }
     }
 }
